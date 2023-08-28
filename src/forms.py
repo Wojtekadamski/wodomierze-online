@@ -76,15 +76,9 @@ class UserOverviewForm(FlaskForm):
 
 
 class MessageForm(FlaskForm):
-    subject = StringField('Subject', validators=[DataRequired()])
-    content = TextAreaField('Content', validators=[DataRequired()])
-    recipient = SelectField('Recipient', choices=[], validators=[DataRequired()])
-    send_to_all = BooleanField('Send to All Users')
-    submit = SubmitField('Send')
+    subject = StringField('Temat', validators=[DataRequired()])
+    content = TextAreaField('Treść', validators=[DataRequired()])
+    recipient = SelectField('Odbiorca', choices=[], validators=[DataRequired()])
+    send_to_all = BooleanField('Wyślij do wszystkich')
+    submit = SubmitField('Wyślij')
 
-
-class SendMessageForm(FlaskForm):
-    recipient = StringField('Recipient', validators=[DataRequired(), Email()])
-    subject = StringField('Subject', validators=[DataRequired()])
-    content = TextAreaField('Content', validators=[DataRequired()])
-    submit = SubmitField('Send')

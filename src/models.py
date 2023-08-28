@@ -1,4 +1,6 @@
+import string
 from datetime import datetime
+from random import random
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager
@@ -15,9 +17,22 @@ db = SQLAlchemy()
 def init_db(app):
     db.init_app(app)
 
+def generate_random_id(length):
+    characters = string.ascii_letters + string.digits
+    random_id = ''.join(random.choice(characters) for _ in range(length))
+    return random_id
+
+def is_random_id_unique(random_id):
+    existing_user = User.query.filter_by(random_id=random_id).first()
+    return existing_user is None
+
+def get_user_by_random_id(random_id):
+    user = User.query.filter_by(random_id=random_id).first()
+    return user
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
+   # random_id = generate_random_id(10)
     email = db.Column(db.String(120), unique=True, index=True)
     password_hash = db.Column(db.String(128))
     is_admin = db.Column(db.Boolean, default=False)
@@ -32,6 +47,8 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+
 
 
 class Meter(db.Model):

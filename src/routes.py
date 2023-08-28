@@ -3,7 +3,7 @@ from flask import render_template, flash, redirect, url_for, Blueprint, request,
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from src.config import UPLOAD_FOLDER, EMAIL_KEY
-from src.forms import LoginForm, RegistrationForm, MeterForm, MeterReadingForm, UploadForm, UserForm, EditAccountForm, UserNotesForm, UserOverviewForm, MessageForm, SendMessageForm
+from src.forms import LoginForm, RegistrationForm, MeterForm, MeterReadingForm, UploadForm, UserForm, EditAccountForm, UserNotesForm, UserOverviewForm, MessageForm
 from src.models import User, db, Meter, MeterReading, get_all_users, Message
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link
