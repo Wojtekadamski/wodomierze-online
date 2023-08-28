@@ -7,3 +7,4 @@ pandas==2.0.3
 SQLAlchemy==2.0.20
 Werkzeug==2.3.6
 WTForms==3.0.1
+email_validator
