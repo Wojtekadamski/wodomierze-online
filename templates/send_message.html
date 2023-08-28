@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Send Message</h1>
+  <div class="col-md-6">
+    <form method="POST">
+      {{ form.hidden_tag() }}
+      <div class="form-group">
+        {{ form.recipient.label(class="form-control-label") }}
+        {{ form.recipient(class="form-control") }}
+      </div>
+      <div class="form-group">
+        {{ form.subject.label(class="form-control-label") }}
+        {{ form.subject(class="form-control") }}
+      </div>
+      <div class="form-group">
+        {{ form.content.label(class="form-control-label") }}
+        {{ form.content(class="form-control", rows=4) }}
+      </div>
+      <div class="form-group">
+        {{ form.submit(class="btn btn-primary") }}
+      </div>
+    </form>
+  </div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1>Login</h1>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    <div class="right-box">
+    <form method="POST" action="{{ url_for('main_routes.login') }}" style="max-width: 300px">
+  {{ form.hidden_tag() }}
+  <div class="form-group" >
+    {{ form.email.label }}
+    {{ form.email(class="form-control") }}
+  </div>
+  <div class="form-group">
+    {{ form.password.label }}
+    {{ form.password(class="form-control") }}
+  </div>
+  <div class="form-group form-check">
+    {{ form.remember_me(class="form-check-input") }}
+    {{ form.remember_me.label(class="form-check-label") }}  <!-- Dodaj pole remember_me -->
+  </div>
+  <div class="form-group">
+    {{ form.submit(class="btn btn-primary") }}
+  </div>
+</form>
+    <p>Nie masz konta? Skontaktuj się z firmą <a href="https://smartbits.pl/">Smartbits</a></p>
+</div>
+{% endblock content %}

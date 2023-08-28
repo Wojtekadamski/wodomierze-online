@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Your Meters</h1>
+<ul class="user-list">
+    {% for meter in user_meters %}
+    <li class="user-item">
+        <a href="{{ url_for('main_routes.meter_details', meter_id=meter.id) }}">
+            Meter Number: {{ meter.radio_number }} | Name: {{ meter.name }} | Type: {{ meter.type }}
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

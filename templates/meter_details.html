@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style type="text/css">
+    /* Ukryj przyciski i elementy niepotrzebne na stronie druku */
+    @media print {
+        #export-csv-button,
+        #line-chart-button,
+        #bar-chart-button,
+        #table-button,
+        #edit-button,
+        .no-print {
+            display: none;
+        }
+    }
+
+    /* Dostosuj styl wydruku dla tabeli */
+    @media print {
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+    }
+</style>
+
+<button class="btn btn-secondary no-print" onclick="goBack()">Powrót</button>
+<h2>Szczegóły licznika</h2>
+<p>Numer radiowy: {{ meter.radio_number }}</p>
+
+{% if current_user == meter.user %}
+<p id="meter-name" class="editable">nazwa: {{ meter.name }}</p>
+<form id="edit-form" class="hidden" method="post" action="{{ url_for('main_routes.update_meter_name', meter_id=meter.id) }}">
+    <div class="form-group">
+        <label for="new-name">Nowa nazwa:</label>
+        <input type="text" id="new-name" name="new_name" value="{{ meter.name }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Aktualizuj</button>
+</form>
+<button id="edit-button" class="btn btn-link">Zmień nazwę</button>
+{% endif %}
+<p>Typ: {% if meter.type == "water" %}wodomierz{% elif meter.type == "heat" %}ciepłomierz{% endif %}</p>{% if current_user.is_admin %}
+<th>Przypisany do użytkownika:</th>
+<td>
+    {% if meter.user %}
+    <a href="{{ url_for('main_routes.user_overview', user_id=user.id) }}">{{ user.email }}</a>
+    {% else %}
+    Brak przypisanego użytkownika.
+    {% endif %}
+</td>
+{% endif %}
+<h3 class="no-print">Odczyty</h3>
+<form class="no-print hidden">
+    <div class="form-group">
+        <label for="date-range">Zakres dat:</label>
+        <input type="date" id="start-date"> to <input type="date" id="end-date">
+        <button type="button" id="update-chart">Aktualizuj</button>
+    </div>
+</form>
+<button id="export-csv-button" class="btn btn-primary no-print">Wyeksportuj do CSV</button>
+<button id="print-pdf-button" class="btn btn-primary no-print" onclick="window.print()">Drukuj to PDF</button>
+<br />
+<br />
+<button id="line-chart-button" onclick="showChart('line')">wykres liniowy</button>
+<button id="bar-chart-button" onclick="showChart('bar')">wykres słupkowy</button>
+<button id="table-button" onclick="showTable()">tabela</button>
+
+<div id="chart-container"></div>
+<div id="table-container"></div>
+<!--- Skrypt do rysowania wykresów --->
+   <script>
+    var readings = {{ readings|tojson }};
+    var readingsList = readings.map(function(reading) {
+        return { date: new Date(reading.date), reading: reading.reading };
+    });
+
+    readingsList.sort(function(a, b) {
+        return a.date - b.date;
+    });
+
+    var dates = readingsList.map(function(reading) { return reading.date; });
+    var values = readingsList.map(function(reading) { return reading.reading; });
+
+    var lineTrace = {
+        x: dates,
+        y: values,
+        mode: 'lines+markers',
+        type: 'scatter'
+    };
+
+    var barTrace = {
+        x: dates,
+        y: values,
+        type: 'bar'
+    };
+
+    var layout = {
+        xaxis: {
+            title: 'Data'
+        },
+        yaxis: {
+            title: {% if meter.type == "water" %}'Objętość [m^3]'{% elif meter.type == "heat" %}'Energia [GJ]'{% endif %}
+        }
+    };
+
+    var lineData = [lineTrace];
+    var barData = [barTrace];
+
+    Plotly.newPlot('chart-container', lineData, layout);
+
+    var startDateInput = document.getElementById('start-date');
+    var endDateInput = document.getElementById('end-date');
+    var updateButton = document.getElementById('update-chart');
+    var lineChartButton = document.getElementById('line-chart-button');
+    var barChartButton = document.getElementById('bar-chart-button');
+    var tableButton = document.getElementById('table-button');
+    var tableContainer = document.getElementById('table-container');
+
+    updateButton.addEventListener('click', function() {
+        var startDate = startDateInput.value;
+        var endDate = endDateInput.value;
+
+        var filteredReadings = readingsList.filter(function(reading) {
+            return reading.date >= startDate && reading.date <= endDate;
+        });
+
+        var updatedDates = filteredReadings.map(function(reading) { return reading.date; });
+        var updatedValues = filteredReadings.map(function(reading) { return reading.reading; });
+
+        var updatedLineTrace = {
+            x: updatedDates,
+            y: updatedValues,
+            mode: 'lines+markers',
+            type: 'scatter'
+        };
+
+        var updatedBarTrace = {
+            x: updatedDates,
+            y: updatedValues,
+            type: 'bar'
+        };
+
+        var updatedLineData = [updatedLineTrace];
+        var updatedBarData = [updatedBarTrace];
+
+        Plotly.react('chart-container', updatedLineData, layout);
+        tableContainer.innerHTML = generateTableHTML(filteredReadings);
+        tableContainer.style.display = 'block';
+    });
+
+    lineChartButton.addEventListener('click', function() {
+        Plotly.react('chart-container', lineData, layout);
+        tableContainer.style.display = 'block';
+    });
+
+    barChartButton.addEventListener('click', function() {
+        Plotly.react('chart-container', barData, layout);
+        tableContainer.style.display = 'block';
+    });
+
+    tableButton.addEventListener('click', function() {
+        tableContainer.innerHTML = generateTableHTML(readingsList);
+        tableContainer.style.display = 'block';
+        Plotly.purge('chart-container');
+    });
+
+    function generateTableHTML(readingsList) {
+        var tableHTML = '<table class="table"><thead><tr><th>Data</th><th>' + getReadingUnit() + '</th></tr></thead><tbody>';
+        readingsList.forEach(function(reading) {
+            tableHTML += '<tr><td>' + formatDateForTable(reading.date) + '</td><td>' + reading.reading + '</td></tr>';
+        });
+        tableHTML += '</tbody></table>';
+        return tableHTML;
+    }
+
+    function formatDateForTable(date) {
+        var options = { year: 'numeric', month: 'long', day: '2-digit', hour: '2-digit', minute: '2-digit' };
+        return date.toLocaleString('pl-PL', options);
+    }
+
+    function getReadingUnit() {
+        return {% if meter.type == "water" %}'Objętość [m³]'{% elif meter.type == "heat" %}'Energia [GJ]'{% endif %};
+    }
+
+    function addChartAndTable() {
+        var chartContainer = document.getElementById('chart-container');
+        var tableContainer = document.getElementById('table-container');
+
+        // Dodaj wykres liniowy
+        Plotly.newPlot(chartContainer, lineData, layout);
+
+        // Dodaj tabelę
+        tableContainer.innerHTML = generateTableHTML(readingsList);
+    }
+
+    // Wywołaj funkcję po załadowaniu strony
+    addChartAndTable();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const meterName = document.getElementById("meter-name");
+            const editForm = document.getElementById("edit-form");
+            const editButton = document.getElementById("edit-button");
+
+            editButton.addEventListener("click", function () {
+                meterName.classList.add("hidden");
+                editForm.classList.remove("hidden");
+            });
+        });
+
+        function goBack() {
+            window.history.back();
+        }
+
+        // Dodany przycisk "Wyeksportuj do CSV"
+
+    function formatDateForCSV(date) {
+        var day = ('0' + date.getDate()).slice(-2);
+        var month = ('0' + (date.getMonth() + 1)).slice(-2);
+        var year = date.getFullYear();
+        var hours = ('0' + date.getHours()).slice(-2);
+        var minutes = ('0' + date.getMinutes()).slice(-2);
+        return day + '-' + month + '-' + year + ' ' + hours + ':' + minutes;
+    }
+
+        const exportCsvButton = document.getElementById('export-csv-button');
+
+        exportCsvButton.addEventListener('click', function() {
+        exportToCsv(readingsList);
+    });
+
+        function exportToCsv(readingsList) {
+        var csvContent = "data:text/csv;charset=utf-8," +
+            "Date,Reading\n" +
+            readingsList.map(reading => `${formatDateForCSV(reading.date)},${reading.reading}`).join("\n");
+
+        var encodedUri = encodeURI(csvContent);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "readings.csv");
+        document.body.appendChild(link); // Required for Firefox
+        link.click();
+        document.body.removeChild(link);
+    }
+    </script>
+
+
+
+{% endblock %}

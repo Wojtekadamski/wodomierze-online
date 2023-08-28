@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Add User</h2>
+    <form method="POST" action="{{ url_for('main_routes.add_user') }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.email.label() }}
+            {{ form.email(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.password.label() }}
+            {{ form.password(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.confirm_password.label() }}
+            {{ form.confirm_password(class="form-control") }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add User</button>
+    </form>
+{% endblock %}

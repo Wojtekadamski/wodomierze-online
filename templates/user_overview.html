@@ -1,0 +1,116 @@
+{% extends 'admin_panel.html' %}
+
+{% block user %}
+    <h2>Przegląd użytkownika</h2>
+
+    <!-- Informacje o użytkowniku -->
+    <div class="user-info">
+        <h4>Email: {{ user.email }}</h4>
+        <h5>Notatki o użytkowniku</h5>
+    <div id="notes-display-field">
+    {% if user.notes and user.notes.strip() != '' %}
+        {{ user.notes }}
+    {% else %}
+        <p>Brak notatek.</p>
+    {% endif %}
+        <button id="edit-notes-button" class="btn btn-secondary">Edytuj notatki</button>
+    <form method="POST" id="notes-edit-field" style="display: none;">
+        {{ user_notes_form.hidden_tag() }}
+        <div class="form-group">
+            {{ user_notes_form.notes.label(class="form-label") }}
+    {{ user_notes_form.notes(class="form-control", value=user.notes) }}
+        </div>
+        <button type="submit" class="btn btn-primary">Zapisz notatki</button>
+    </form>
+    </div>
+<br>
+    <!-- Lista przypisanych liczników -->
+    <div class="assigned-meters">
+        <h3>Przypisane liczniki</h3>
+        <ul class="meter-list limited-list" style="max-height: 200px; max-width: 400px">
+            {% for meter in user.meters %}
+                <li>{{ meter.radio_number }} - <a href="{{ url_for('main_routes.meter_details', meter_id=meter.id) }}">Szczegóły</a> | <button class="btn btn-danger" onclick="confirmDelete('{{ meter.id }}')">Usuń</button></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Formularz dodawania licznika -->
+   <h3>Wolne liczniki</h3>
+     <input type="text" id="search-meter-input" placeholder="Numer radiowy">
+<ul class="user-list limited-list" style="width: 250px" id="meter-list">
+    {% for meter in unassigned_meters %}
+        <li class="meter-item" style="width: 150px">{{ meter.radio_number }} <a href="{{ url_for('main_routes.assign_meter', user_id=user.id, meter_id=meter.id) }}">Assign</a></li>
+    {% endfor %}
+</ul>
+
+    <button class="btn btn-danger" onclick="showPasswordInput()">Usuń Użytkownika</button>
+    <form id="deleteUserForm" method="POST" action="{{ url_for('main_routes.delete_user', user_id=user.id) }}" style="display: none;">
+        <div class="form-group">
+            <label for="admin_password">Administrator Password</label>
+            <input type="password" name="admin_password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Czy na pewno chcesz usunąć tego użytkownika?')">Usuń Użytkownika</button>
+    </form>
+     <!-- Przycisk dezaktywacji użytkownika -->
+    {% if user.is_active %}
+        <form method="POST" action="{{ url_for('main_routes.deactivate_user', user_id=user.id) }}">
+            <button type="submit" class="btn btn-warning" onclick="return confirm('Czy na pewno chcesz dezaktywować to konto?')">Dezaktywuj Konto</button>
+        </form>
+    {% else %}
+        <form method="POST" action="{{ url_for('main_routes.deactivate_user', user_id=user.id) }}">
+            <button type="submit" class="btn btn-success" onclick="return confirm('Czy na pewno chcesz aktywować to konto?')">Aktywuj Konto</button>
+        </form>
+    {% endif %}
+
+    <script>
+        function showPasswordInput() {
+            const deleteUserForm = document.getElementById('deleteUserForm');
+            deleteUserForm.style.display = 'block';
+        }
+    </script>
+<script>
+        const searchMeterInput = document.getElementById('search-meter-input');
+        const meterList = document.getElementById('meter-list');
+
+        searchMeterInput.addEventListener('input', function() {
+            const searchTerm = searchMeterInput.value.toLowerCase();
+            const meterItems = meterList.querySelectorAll('.meter-item');
+
+            meterItems.forEach(function(item) {
+                const meterNumber = item.textContent.trim().toLowerCase();
+                if (meterNumber.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
+    <script>
+function confirmDelete(meterId) {
+    if (confirm("Czy chcesz usunąć ten licznik?")) {
+        window.location.href = '/remove_meter/' + meterId;
+    }
+}
+</script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const editNotesButton = document.getElementById('edit-notes-button');
+        const notesEditField = document.getElementById('notes-edit-field');
+
+        editNotesButton.addEventListener('click', function () {
+            if (notesEditField.style.display === 'none') {
+                notesEditField.style.display = 'block';
+            } else {
+                notesEditField.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+
+
+
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Witaj, {{ current_user.email.split('@')[0] }}!</h2>
+    <h3>Przypisane mierniki:</h3>
+    <input type="text" id="search-input" placeholder="Wyszukaj">
+    <ul id="assigned-meters-list" class="user-list limited-list" style="width: 250px" id="meter-list">
+
+        {% for meter in assigned_meters %}
+            <li class="meter-item assigned-meter"><a href="{{ url_for('main_routes.meter_details', meter_id=meter.id) }}">
+                 {% if meter.name %}
+                        {{ meter.name }} ({{ meter.radio_number }})
+                    {% else %}
+                        {{ meter.radio_number }}
+                    {% endif %}
+            </a></li>
+        {% endfor %}
+    </ul>
+
+     <script>
+        const searchInput = document.getElementById('search-input');
+        const assignedMetersList = document.getElementById('assigned-meters-list');
+
+        searchInput.addEventListener('input', function() {
+            const searchQuery = searchInput.value.toLowerCase();
+            const assignedMeters = document.querySelectorAll('.assigned-meter');
+
+            assignedMeters.forEach(function(meter) {
+                const meterText = meter.textContent.toLowerCase();
+                if (meterText.includes(searchQuery)) {
+                    meter.style.display = 'block';
+                } else {
+                    meter.style.display = 'none';
+                }
+            });
+        });
+    </script>
+{% endblock %}

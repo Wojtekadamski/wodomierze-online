@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Edytuj profil</h1>
+    <h3>email: {{ user_email }}</h3>
+  <form method="POST" action="{{ url_for('main_routes.edit_account') }}" style="width: 400px">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+      {{ form.current_password.label }}
+      {{ form.current_password(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.new_password.label }}
+      {{ form.new_password(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.confirm_password.label }}
+      {{ form.confirm_password(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.submit(class="btn btn-primary") }}
+    </div>
+  </form>
+{% endblock %}

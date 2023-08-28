@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <button class="btn btn-secondary" onclick="goBack()">Powrót</button>
+
+  <h1>Message</h1>
+  <p><strong>Subject:</strong> {{ message.subject }}</p>
+  <p><strong>From:</strong> {{ message.sender.email }}</p>
+  <p><strong>Date:</strong> {{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+  <p><strong>Content:</strong></p>
+  <p>{{ message.content }}</p>
+
+    <a href="{{ url_for('main_routes.delete_message', message_id=message.id) }}" class="btn btn-danger">Usuń wiadomość</a>
+
+     <script>
+        function goBack() {
+            window.history.back();
+        }
+    </script>
+{% endblock %}

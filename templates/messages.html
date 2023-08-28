@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Messages</h1>
+  <div class="row">
+  {% if current_user.is_admin %}
+   <div class="col-md-6">
+  <h2>Send a Message</h2>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+     <div class="form-group">
+      <label class="form-control-label">Recipients</label>
+      <div>
+        <input type="text" id="email-filter" class="form-control" placeholder="Wyszukaj po adresie email">
+      </div>
+      <div id="recipient-list" style="max-height: 100px; overflow-y: auto;">
+        {% for value, label in form.recipient.choices %}
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="recipient" value="{{ value }}" id="recipient-{{ value }}">
+            <label class="form-check-label" for="recipient-{{ value }}">{{ label }}</label>
+          </div>
+        {% endfor %}
+      </div>
+    <div class="form-group">
+      {{ form.subject.label(class="form-control-label") }}
+      {{ form.subject(class="form-control") }}
+    </div>
+    <div class="form-group">
+      {{ form.content.label(class="form-control-label") }}
+      {{ form.content(class="form-control", rows=4) }}
+    </div>
+    <div class="form-group">
+      {{ form.send_to_all() }} {{ form.send_to_all.label(class="form-check-label") }}
+    </div>
+    <div class="form-group">
+      {{ form.submit(class="btn btn-primary") }}
+    </div>
+  </form>
+</div>
+
+  {% endif %}
+    <div class="col-md-6">
+      <h2>Inbox</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Sender</th>
+            <th>Subject</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+  {% if current_user.received_messages %}
+    {% for message in current_user.received_messages %}
+            <tr>
+              <td>{{ message.sender.email }}</td>
+              <td>{{ message.subject }}</td>
+              <td>{{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+             <td>
+        <a href="{{ url_for('main_routes.message', message_id=message.id) }}" class="btn btn-primary">Wyświetl wiadomość</a>
+      </td>
+            <td><a href="{{ url_for('main_routes.delete_message', message_id=message.id) }}" class="btn btn-danger">X</a></td>
+            </tr>
+          {% endfor %}
+        {% else %}
+    <tr>
+        <td colspan="3"><h2>Brak wiadomości.</h2></td>
+    </tr>
+  {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+    <script>
+  const emailFilter = document.getElementById('email-filter');
+  const recipientList = document.getElementById('recipient-list');
+
+  emailFilter.addEventListener('input', function() {
+    const filterValue = emailFilter.value.toLowerCase();
+    const recipients = recipientList.querySelectorAll('.form-check');
+
+    recipients.forEach(recipient => {
+      const label = recipient.querySelector('.form-check-label');
+      if (label.textContent.toLowerCase().includes(filterValue)) {
+        recipient.style.display = 'block';
+      } else {
+        recipient.style.display = 'none';
+      }
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Panel Administratora</h2>
+    <div class="content-box">
+
+
+    <div class="left-box" style="width: 25%">
+<h3>Dodaj użytkownika</h3>
+    <div>
+        <button id="showUserForm" class="btn btn-primary">Pokaż formularz</button>
+        <button id="hideUserForm" class="btn btn-secondary" style="display: none">Schowaj formularz</button>
+    </div>
+    <!-- Widok użytkowników -->
+    <h3>Lista użytkowników</h3>
+  <input type="text" id="search-user-input" placeholder="Adres email" class="search-bar">
+<ul class="user-list limited-list" style="width: 320px" id="user-list">
+    {% for user in users %}
+        <li class="user-item">
+            <a href="{{ url_for('main_routes.user_overview', user_id=user.id) }}">{{ user.email }}</a>
+        </li>
+    {% endfor %}
+</ul>
+
+    <h3>Lista liczników</h3>
+    <input type="text" id="search-meter-input" placeholder="Numer radiowy" style="width: 150px">
+    <ul class="user-list limited-list" style="width: 150px" id="meter-list">
+        {% for meter in meters %}
+            <li class="meter-item">
+                <a href="{{ url_for('main_routes.meter_details', meter_id=meter.id) }}"> {{ meter.radio_number }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+<form method="POST" action="{{ url_for('main_routes.delete_meters') }}">
+    <button type="submit" class="btn btn-danger">Usuń wszystkie mierniki i odczyty</button>
+</form>
+   </div>
+<div class="right-box user-overview-container">
+
+<form id="userForm" method="POST" action="{{ url_for('main_routes.add_user') }}" style="display: none;max-width: 400px"><h3>Dodaj użytkownika</h3>
+
+    {{ user_form.hidden_tag() }}
+    <div class="form-group">
+        {{ user_form.email.label(class="form-label") }}
+        {{ user_form.email(class="form-control") }}
+    </div>
+    <div class="form-group">
+        {{ user_form.password.label(class="form-label") }}
+        {{ user_form.password(class="form-control") }}
+    </div>
+    <div class="form-group">
+        {{ user_form.confirm_password.label(class="form-label") }}
+        {{ user_form.confirm_password(class="form-control") }}
+    </div>
+    <button type="submit" class="btn btn-primary">Dodaj</button>
+</form>
+
+    {% block user %}
+
+    {% endblock user %}
+</div>
+</div>
+
+
+
+    <script>
+        const searchMeterInput = document.getElementById('search-meter-input');
+        const meterList = document.getElementById('meter-list');
+
+        searchMeterInput.addEventListener('input', function() {
+            const searchTerm = searchMeterInput.value.toLowerCase();
+            const meterItems = meterList.querySelectorAll('.meter-item');
+
+            meterItems.forEach(function(item) {
+                const meterNumber = item.textContent.trim().toLowerCase();
+                if (meterNumber.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
+   <script>
+        const showUserFormBtn = document.getElementById("showUserForm");
+        const hideUserFormBtn = document.getElementById("hideUserForm");
+        const userForm = document.getElementById("userForm");
+
+        showUserFormBtn.addEventListener("click", function () {
+            userForm.style.display = "block";
+            this.style.display = "none";
+            hideUserFormBtn.style.display = "block";
+        });
+
+        hideUserFormBtn.addEventListener("click", function () {
+            userForm.style.display = "none";
+            this.style.display = "none";
+            showUserFormBtn.style.display = "block";
+        });
+    </script>
+
+    <script>
+    const searchUserInput = document.getElementById('search-user-input');
+    const userList = document.getElementById('user-list');
+
+    searchUserInput.addEventListener('input', function() {
+        const searchTerm = searchUserInput.value.toLowerCase();
+        const userItems = userList.querySelectorAll('.user-item');
+
+        userItems.forEach(function(item) {
+            const userEmail = item.textContent.trim().toLowerCase();
+            if (userEmail.includes(searchTerm)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+</script>
+
+{% endblock %}

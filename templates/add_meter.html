@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="center-box">
+    <h2>Add Meter</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.radio_number.label(class="form-field") }}
+            {{ form.radio_number(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.type.label(class="form-field") }}
+            {{ form.type(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.user_id.label(class="form-field") }}
+            {{ form.user_id(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Add Meter</button>
+    </form>
+</div>
+{% endblock %}

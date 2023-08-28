@@ -1,0 +1,119 @@
+from datetime import datetime
+
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin, LoginManager
+from sqlalchemy.orm import backref
+from werkzeug.security import generate_password_hash, check_password_hash
+from src.config import SQL_ADMIN_CREDENCIALS as passes
+from src.config import SQL_USER_CREDENTIALS as usercreds
+
+login_manager = LoginManager()
+
+db = SQLAlchemy()
+
+
+def init_db(app):
+    db.init_app(app)
+
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, index=True)
+    password_hash = db.Column(db.String(128))
+    is_admin = db.Column(db.Boolean, default=False)
+    meters = db.relationship('Meter', backref='user', lazy='dynamic')
+    is_active = db.Column(db.Boolean, default=True)
+    notes = db.Column(db.Text)
+    unread_messages = db.Column(db.Integer, default=0)
+
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+
+class Meter(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    radio_number = db.Column(db.String(64), unique=True, index=True)
+    type = db.Column(db.String(64))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    readings = db.relationship('MeterReading', backref='meter', lazy='dynamic')
+    name = db.Column(db.String(100), nullable=True)
+    events = db.relationship('Event', backref='meter', lazy=True)
+
+
+class Event(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    device_type = db.Column(db.String(20), nullable=False)
+    event_type = db.Column(db.String(50), nullable=False)
+    date_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    value = db.Column(db.String(20))
+    first_occurrence = db.Column(db.DateTime)
+    last_occurrence = db.Column(db.DateTime)
+    meter_id = db.Column(db.Integer, db.ForeignKey('meter.id'), nullable=False)
+
+class MeterReading(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    reading = db.Column(db.Float)
+    meter_id = db.Column(db.Integer, db.ForeignKey('meter.id'))
+
+    def __repr__(self):
+        return f"Meter(id={self.id}, radio_number='{self.radio_number}', type='{self.type}', user_id={self.user_id}, name='{self.name}')"
+
+
+class UserValidationLink(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    link = db.Column(db.String(64))
+    is_used = db.Column(db.Boolean, default=False)
+
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subject = db.Column(db.String(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    read = db.Column(db.Boolean, default=False, nullable=False)
+
+    sender = db.relationship('User', foreign_keys=[sender_id], backref=backref('sent_messages', lazy=True))
+    recipient = db.relationship('User', foreign_keys=[recipient_id], backref=backref('received_messages', lazy=True))
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+def get_all_users():
+    users = User.query.all()
+    user_list = []
+    for user in users:
+        user_dict = {
+            'id': user.id,
+            'email': user.email,
+            'is_admin': user.is_admin,
+        }
+        user_list.append(user_dict)
+    return user_list
+
+
+def create_admin():
+    admin = User.query.filter_by(is_admin=True).first()
+
+    if admin is None:
+        admin = User(password_hash=generate_password_hash(passes[1]), email=passes[0],
+                     is_admin=True)
+        db.session.add(admin)
+        db.session.commit()
+def create_user_test():
+    user = User.query.filter_by(email='user@gmail.com').first()
+
+    if user is None:
+        user = User( password_hash=generate_password_hash(usercreds[1]), email=usercreds[0],
+                     is_admin=False)
+        db.session.add(user)
+        db.session.commit()
