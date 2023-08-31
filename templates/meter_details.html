@@ -1,41 +1,39 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style type="text/css">
-    /* Ukryj przyciski i elementy niepotrzebne na stronie druku */
-    @media print {
-        #export-csv-button,
-        #line-chart-button,
-        #bar-chart-button,
-        #table-button,
-        #edit-button,
-        .no-print {
-            display: none;
-        }
-    }
-
-    /* Dostosuj styl wydruku dla tabeli */
-    @media print {
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-    }
-</style>
 
 <button class="btn btn-secondary no-print" onclick="goBack()">Powrót</button>
 <h2>Szczegóły licznika</h2>
 <p>Numer radiowy: {{ meter.radio_number }}</p>
+{% if meter.address %}
+    <p>Adres: {{ meter.address.city }}, Ul.{{ meter.address.street }} {{ meter.address.building_number }} {% if meter.address.apartment_number %}/{{ meter.address.apartment_number }}{% endif %}, {{ meter.address.postal_code }}
+    <button id="add-address-button" class="btn btn-primary no-print">Edytuj adres</button>
+    </p>
+{% else %}
+    <p>Brak przypisanego adresu.
+    <button id="add-address-button" class="btn btn-primary no-print">Dodaj adres</button>
+    </p>
+{% endif %}
+    <form id="address-form" style="max-width: 400px" class="hidden" method="post" action="{{ url_for('main_routes.update_meter_address', meter_id=meter.id) }}">
+    <label for="city">Miasto:</label>
+    <input type="text" id="city" name="city" class="address-input" value="{{ meter.address.city }}">
 
+    <label for="street">Ulica:</label>
+    <input type="text" id="street" name="street" class="address-input" value="{{ meter.address.street }}">
+
+    <label for="building_number">Numer klatki:</label>
+    <input type="text" id="building_number" name="building_number" class="address-input" value="{{ meter.address.building_number }}">
+
+    <label for="apartment_number">Numer mieszkania:</label>
+    <input type="text" id="apartment_number" name="apartment_number" class="address-input" value="{{ meter.address.apartment_number }}">
+
+    <label for="postal_code">Kod pocztowy:</label>
+    <input type="text" id="postal_code" name="postal_code" class="address-input" value="{{ meter.address.postal_code }}">
+
+    <button type="submit" class="btn btn-primary">Zapisz adres</button>
+</form>
 {% if current_user == meter.user %}
-<p id="meter-name" class="editable">nazwa: {{ meter.name }}</p>
+<p id="meter-name" class="editable">nazwa: {{ meter.name }}
 <form id="edit-form" class="hidden" method="post" action="{{ url_for('main_routes.update_meter_name', meter_id=meter.id) }}">
     <div class="form-group">
         <label for="new-name">Nowa nazwa:</label>
@@ -43,9 +41,11 @@
     </div>
     <button type="submit" class="btn btn-primary">Aktualizuj</button>
 </form>
-<button id="edit-button" class="btn btn-link">Zmień nazwę</button>
+<button id="edit-button" class="btn btn-primary">Zmień nazwę</button>
+    </p>
 {% endif %}
-<p>Typ: {% if meter.type == "water" %}wodomierz{% elif meter.type == "heat" %}ciepłomierz{% endif %}</p>{% if current_user.is_admin %}
+<p>Typ: {% if meter.type == "water" %}wodomierz{% elif meter.type == "heat" %}ciepłomierz{% endif %}</p>
+    {% if current_user.is_admin %}
 <th>Przypisany do użytkownika:</th>
 <td>
     {% if meter.user %}
@@ -54,11 +54,18 @@
     Brak przypisanego użytkownika.
     {% endif %}
 </td>
+
+       <form method="post" action="{{ url_for('main_routes.delete_meter', meter_id=meter.id) }}">
+    <button type="submit" class="btn btn-danger" onclick="return confirm('Czy na pewno chcesz usunąć ten licznik?')">Usuń licznik</button>
+</form>
+<form method="post" action="{{ url_for('main_routes.clear_readings', meter_id=meter.id) }}">
+    <button type="submit" class="btn btn-warning" onclick="return confirm('Czy na pewno chcesz wyczyścić odczyty tego licznika?')">Wyczyść licznik</button>
+</form>
 {% endif %}
 <h3 class="no-print">Odczyty</h3>
-<form class="no-print hidden">
+<form class="no-print">
     <div class="form-group">
-        <label for="date-range">Zakres dat:</label>
+        <label for="start-date">Zakres dat:</label>
         <input type="date" id="start-date"> to <input type="date" id="end-date">
         <button type="button" id="update-chart">Aktualizuj</button>
     </div>
@@ -114,40 +121,40 @@
 
     Plotly.newPlot('chart-container', lineData, layout);
 
-    var startDateInput = document.getElementById('start-date');
-    var endDateInput = document.getElementById('end-date');
-    var updateButton = document.getElementById('update-chart');
-    var lineChartButton = document.getElementById('line-chart-button');
-    var barChartButton = document.getElementById('bar-chart-button');
-    var tableButton = document.getElementById('table-button');
-    var tableContainer = document.getElementById('table-container');
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+    const updateButton = document.getElementById('update-chart');
+    const lineChartButton = document.getElementById('line-chart-button');
+    const barChartButton = document.getElementById('bar-chart-button');
+    const tableButton = document.getElementById('table-button');
+    const tableContainer = document.getElementById('table-container');
 
     updateButton.addEventListener('click', function() {
-        var startDate = startDateInput.value;
-        var endDate = endDateInput.value;
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
 
-        var filteredReadings = readingsList.filter(function(reading) {
+        const filteredReadings = readingsList.filter(function(reading) {
             return reading.date >= startDate && reading.date <= endDate;
         });
 
-        var updatedDates = filteredReadings.map(function(reading) { return reading.date; });
-        var updatedValues = filteredReadings.map(function(reading) { return reading.reading; });
+        const updatedDates = filteredReadings.map(function(reading) { return reading.date; });
+        const updatedValues = filteredReadings.map(function(reading) { return reading.reading; });
 
-        var updatedLineTrace = {
+        const updatedLineTrace = {
             x: updatedDates,
             y: updatedValues,
             mode: 'lines+markers',
             type: 'scatter'
         };
 
-        var updatedBarTrace = {
+        const updatedBarTrace = {
             x: updatedDates,
             y: updatedValues,
             type: 'bar'
         };
 
-        var updatedLineData = [updatedLineTrace];
-        var updatedBarData = [updatedBarTrace];
+        const updatedLineData = [updatedLineTrace];
+        const updatedBarData = [updatedBarTrace];
 
         Plotly.react('chart-container', updatedLineData, layout);
         tableContainer.innerHTML = generateTableHTML(filteredReadings);
@@ -249,6 +256,20 @@
     }
     </script>
 
+<script>
+    const addAddressButton = document.getElementById('add-address-button');
+    const editAddressButton = document.getElementById('edit-address-button');
+    const addressForm = document.getElementById('address-form');
+
+    addAddressButton.addEventListener('click', function () {
+        addressForm.classList.remove('hidden');
+        addAddressButton.classList.add('hidden');
+    });
+
+    editAddressButton.addEventListener('click', function () {
+        addressForm.classList.remove('hidden');
+    });
+</script>
 
 
 {% endblock %}

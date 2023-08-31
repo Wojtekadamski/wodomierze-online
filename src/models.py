@@ -59,6 +59,8 @@ class Meter(db.Model):
     readings = db.relationship('MeterReading', backref='meter', lazy='dynamic')
     name = db.Column(db.String(100), nullable=True)
     events = db.relationship('Event', backref='meter', lazy=True)
+    address_id = db.Column(db.Integer, db.ForeignKey('address.id'))
+    address = db.relationship('Address', backref='meter', lazy=True)
 
 
 class Event(db.Model):
@@ -98,6 +100,15 @@ class Message(db.Model):
 
     sender = db.relationship('User', foreign_keys=[sender_id], backref=backref('sent_messages', lazy=True))
     recipient = db.relationship('User', foreign_keys=[recipient_id], backref=backref('received_messages', lazy=True))
+
+
+class Address(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    city = db.Column(db.String(100), nullable=False)
+    street = db.Column(db.String(100), nullable=False)
+    building_number = db.Column(db.String(10), nullable=False)
+    apartment_number = db.Column(db.String(10))
+    postal_code = db.Column(db.String(20), nullable=False)
 
 
 @login_manager.user_loader

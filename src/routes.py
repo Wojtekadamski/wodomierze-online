@@ -4,7 +4,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from src.config import UPLOAD_FOLDER, EMAIL_KEY
 from src.forms import LoginForm, RegistrationForm, MeterForm, MeterReadingForm, UploadForm, UserForm, EditAccountForm, UserNotesForm, UserOverviewForm, MessageForm
-from src.models import User, db, Meter, MeterReading, get_all_users, Message
+from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link
 from cryptography.fernet import Fernet
@@ -118,18 +118,37 @@ def user_meters():
     return render_template('user_meters.html', user_meters=user_meters)
 
 
-@main_routes.route('/meter_details/<int:meter_id>')
+@main_routes.route('/meter_details/<int:meter_id>', methods=['GET', 'POST'])
 @login_required
 def meter_details(meter_id):
     meter = Meter.query.get_or_404(meter_id)
     user = meter.user
-    if current_user.is_admin or meter.user == current_user:
-        readings = MeterReading.query.filter_by(meter_id=meter.id).all()
-        readings_list = [{"date": reading.date, "reading": reading.reading} for reading in readings]
-        return render_template('meter_details.html', meter=meter, readings=readings_list, user=user)
-    else:
-        flash('Brak dostępu.', 'danger')
+    if current_user != meter.user and not current_user.is_admin:
+        flash('Brak uprawnień do wyświetlenia tych szczegółów.', 'danger')
         return redirect(url_for('main_routes.home'))
+
+
+    readings = MeterReading.query.filter_by(meter_id=meter.id).all()
+    readings_list = [{"date": reading.date, "reading": reading.reading} for reading in readings]
+    return render_template('meter_details.html', meter=meter, readings=readings_list, user=user)
+
+@main_routes.route('/delete_meter/<int:meter_id>', methods=['POST'])
+@admin_required
+def delete_meter(meter_id):
+    meter = Meter.query.get_or_404(meter_id)
+    db.session.delete(meter)
+    db.session.commit()
+    flash('Licznik został usunięty.', 'success')
+    return redirect(url_for('main_routes.admin_panel'))
+
+@main_routes.route('/clear_readings/<int:meter_id>', methods=['POST'])
+@admin_required
+def clear_readings(meter_id):
+    meter = Meter.query.get_or_404(meter_id)
+    meter.readings.delete()
+    db.session.commit()
+    flash('Odczyty licznika zostały wyczyszczone.', 'success')
+    return redirect(url_for('main_routes.meter_details', meter_id=meter_id))
 
 
 
@@ -147,6 +166,33 @@ def update_meter_name(meter_id):
             flash('Nazwa nie może być pusta.', 'danger')
     else:
         flash('Nie masz uprawnień do zmiany nazwy licznika.', 'danger')
+    return redirect(url_for('main_routes.meter_details', meter_id=meter.id))
+
+@main_routes.route('/update_meter_address/<int:meter_id>', methods=['POST'])
+@login_required
+def update_meter_address(meter_id):
+    meter = Meter.query.get_or_404(meter_id)
+    if request.method == 'POST':
+        city = request.form.get('city')
+        street = request.form.get('street')
+        building_number = request.form.get('building_number')
+        apartment_number = request.form.get('apartment_number')
+        postal_code = request.form.get('postal_code')
+
+        if meter.address:
+            address = meter.address
+            address.city = city
+            address.street = street
+            address.building_number = building_number
+            address.apartment_number = apartment_number
+            address.postal_code = postal_code
+        else:
+            address = Address(city=city, street=street, building_number=building_number,
+                              apartment_number=apartment_number, postal_code=postal_code)
+            meter.address = address
+            db.session.add(address)
+
+        db.session.commit()
     return redirect(url_for('main_routes.meter_details', meter_id=meter.id))
 
 
@@ -235,20 +281,12 @@ def remove_meter(meter_id):
         user_id = meter.user.id
     else:
         user_id = None
-    db.session.delete(meter)
+    meter.user = None
+
     db.session.commit()
-    flash('Licznik został usunięty.', 'success')
+    flash('Licznik został odłączony od użytkownika.', 'success')
     return redirect(url_for('main_routes.user_overview', user_id=user_id))
 
-
-@main_routes.route('/delete_meter/<int:meter_id>', methods=['POST'])
-@admin_required
-def delete_meter(meter_id):
-    meter = Meter.query.get_or_404(meter_id)
-    db.session.delete(meter)
-    db.session.commit()
-    flash('Licznik został usunięty.')
-    return redirect(url_for('main_routes.user_overview', user_id=meter.user_id))
 
 
 
@@ -405,3 +443,26 @@ def delete_message(message_id):
     return redirect(url_for('main_routes.messages'))
 
 
+@main_routes.route('/assign_meters_to_user/<int:user_id>', methods=['POST'])
+@login_required
+def assign_meters_to_user(user_id):
+    user = User.query.get_or_404(user_id)
+
+    meter_list = request.form.get('meter_list')
+    meter_numbers = [num.strip() for num in meter_list.split(',')]
+
+    successfully_assigned = []
+    not_assigned = []
+
+    for meter_number in meter_numbers:
+        meter = Meter.query.filter_by(radio_number=meter_number).first()
+        if meter and meter.user_id is None:
+            meter.user_id = user.id
+            db.session.commit()
+            successfully_assigned.append(meter_number)
+        else:
+            not_assigned.append((meter_number, "Przypisanie niemożliwe"))
+
+    flash(not_assigned, 'warning')
+    return redirect(url_for('main_routes.user_overview', successfully_assigned=successfully_assigned,
+                            not_assigned=not_assigned, user=user, user_id=user.id))

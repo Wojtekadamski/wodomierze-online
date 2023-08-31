@@ -215,3 +215,36 @@ h1,h2,h3,h4,h5,h6{
 	margin-right: 10px;
 	border-radius: 5px;
 }
+
+.address-input {
+        display: block;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+
+@media print {
+        #export-csv-button,
+        #line-chart-button,
+        #bar-chart-button,
+        #table-button,
+        #edit-button,
+        .no-print {
+            display: none;
+        }
+    }
+
+    /* Dostosuj styl wydruku dla tabeli */
+    @media print {
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+    }
