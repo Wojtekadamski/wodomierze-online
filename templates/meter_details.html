@@ -68,7 +68,7 @@
         <label for="start-date">Zakres dat:</label>
         <input type="date" id="start-date"> to <input type="date" id="end-date">
         <button type="button" id="update-chart">Aktualizuj</button>
-        <button type="button" id="clear-dates">Wyczyść</button>
+        <button onClick="window.location.reload();">Resetuj</button>
     </div>
 </form>
 <button id="export-csv-button" class="btn btn-primary no-print">Wyeksportuj do CSV</button>
@@ -84,6 +84,7 @@
 <!--- Skrypt do rysowania wykresów --->
    <script>
     var readings = {{ readings|tojson }};
+
     var readingsList = readings.map(function(reading) {
         return { date: new Date(reading.date), reading: reading.reading };
     });
@@ -252,13 +253,7 @@ if (rangeslider) {
         updateChartAndTable();
     });
 
-    const clearDatesButton = document.getElementById('clear-dates');
 
-clearDatesButton.addEventListener('click', function() {
-    startDateInput.value = '';
-    endDateInput.value = '';
-    updateChartAndTable(null, null);
-});
 </script>
     <script>
     // Wywołaj funkcję po załadowaniu strony
