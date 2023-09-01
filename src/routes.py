@@ -1,3 +1,4 @@
+from datetime import datetime
 
 from flask import render_template, flash, redirect, url_for, Blueprint, request, jsonify, Response, send_file
 from flask_login import current_user, login_user, logout_user, login_required
@@ -6,7 +7,7 @@ from src.config import UPLOAD_FOLDER, EMAIL_KEY
 from src.forms import LoginForm, RegistrationForm, MeterForm, MeterReadingForm, UploadForm, UserForm, EditAccountForm, UserNotesForm, UserOverviewForm, MessageForm
 from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address
 import os
-from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link
+from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events
 from cryptography.fernet import Fernet
 
 cipher = Fernet(EMAIL_KEY)
@@ -104,6 +105,12 @@ def upload_csv():
             process_csv_water(file_path)
         elif device_type == 'heat':
             process_csv_heat(file_path)
+        elif device_type == 'events_water':
+            # Nowy kod dla plików zdarzeń
+            process_csv_events(file_path, 'water')
+        elif device_type == 'events_heat':
+            # Nowy kod dla plików zdarzeń
+            process_csv_events(file_path, 'heat')
 
         flash('Plik CSV przesłany pomyślnie.')
         return redirect(url_for('main_routes.home'))
@@ -123,6 +130,7 @@ def user_meters():
 def meter_details(meter_id):
     meter = Meter.query.get_or_404(meter_id)
     user = meter.user
+    events=meter.events
     if current_user != meter.user and not current_user.is_admin:
         flash('Brak uprawnień do wyświetlenia tych szczegółów.', 'danger')
         return redirect(url_for('main_routes.home'))
@@ -130,7 +138,7 @@ def meter_details(meter_id):
 
     readings = MeterReading.query.filter_by(meter_id=meter.id).all()
     readings_list = [{"date": reading.date, "reading": reading.reading} for reading in readings]
-    return render_template('meter_details.html', meter=meter, readings=readings_list, user=user)
+    return render_template('meter_details.html', meter=meter, readings=readings_list, user=user,events=events)
 
 @main_routes.route('/delete_meter/<int:meter_id>', methods=['POST'])
 @admin_required
@@ -466,3 +474,23 @@ def assign_meters_to_user(user_id):
     flash(not_assigned, 'warning')
     return redirect(url_for('main_routes.user_overview', successfully_assigned=successfully_assigned,
                             not_assigned=not_assigned, user=user, user_id=user.id))
+
+@main_routes.route('/summary', methods=['GET', 'POST'])
+def summary():
+    filtered_readings = []
+
+    if request.method == 'POST':
+        address = request.form.get('address')
+        start_date = request.form.get('start_date')
+        end_date = request.form.get('end_date')
+
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+
+        filtered_readings = MeterReading.query.join(Meter).filter(
+            Meter.address == address,
+            MeterReading.date >= start_date,
+            MeterReading.date <= end_date
+        ).all()
+
+    return render_template('summary.html', readings=filtered_readings)

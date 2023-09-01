@@ -1,6 +1,6 @@
 
 from sqlalchemy.exc import NoResultFound
-from src.models import db, Meter, MeterReading, UserValidationLink
+from src.models import db, Meter, MeterReading, UserValidationLink, Event
 from functools import wraps
 from flask import flash, redirect, url_for
 from flask_login import current_user
@@ -121,5 +121,43 @@ def process_csv_heat(file_path):
     db.session.commit()
 
 
+def process_csv_events(file_path, type):
+    df = pd.read_csv(file_path)
+    for index, row in df.iterrows():
+        radio_number = row['Nr radiowy']
+        if pd.isna(radio_number):
+            continue
+        meter = Meter.query.filter_by(radio_number=radio_number).first()
 
+        if not meter:
+            # Tworzymy nowy licznik
+            meter = Meter(radio_number=radio_number, type=type)
+            db.session.add(meter)
+            db.session.commit()
+
+        # Przetwarzanie kolumn i dodawanie zdarzeń do licznika
+        event_type = row['Typ alarmu']
+        reading_time = datetime.datetime.strptime(row['Data i godzina odczytu'], '%m/%d/%Y %H:%M')
+        value = row['Wartość']
+        first_occurrence = datetime.datetime.strptime(row['Pierwsze wystąpienie'], '%m/%d/%Y %H:%M')
+        last_occurrence = datetime.datetime.strptime(row['Ostatnie wystąpienie'], '%m/%d/%Y %H:%M')
+        number_of_occurrences = int(row['Liczba wystąpień'])
+        is_active = row['Aktywny'] == 'True'
+        duration = row['Czas trwania']
+
+        event = Event(
+            device_type='events',
+            event_type=event_type,
+            reading_time=reading_time,
+            value=value,
+            first_occurrence=first_occurrence,
+            last_occurrence=last_occurrence,
+            meter_id=meter.id,
+            number_of_occurrences=number_of_occurrences,
+            is_active=is_active,
+            duration=duration
+        )
+        db.session.add(event)
+
+    db.session.commit()
 

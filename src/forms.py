@@ -41,7 +41,7 @@ class MeterReadingForm(FlaskForm):
     submit = SubmitField('Add Reading')
 
 class UploadForm(FlaskForm):
-    device_type = SelectField('Typ miernika', choices=[('water', 'Wodomierz'), ('heat', 'Ciepłomierz')], validators=[DataRequired()])
+    device_type = SelectField('Typ pliku', choices=[('water', 'Wodomierz'), ('heat', 'Ciepłomierz'), ('events_water', 'Zdarzenia wodomierze'), ('events_heat', 'Zdarzenia ciepłomierze')], validators=[DataRequired()])
     file = FileField('Plik CSV', validators=[FileRequired(), FileAllowed(ALLOWED_EXTENSIONS), DataRequired()])
     submit = SubmitField('Prześlij')
 

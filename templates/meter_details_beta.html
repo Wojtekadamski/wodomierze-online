@@ -84,13 +84,22 @@
 <!--- Skrypt do rysowania wykresów --->
    <script>
     var readings = {{ readings|tojson }};
+    var events = {{ events|tojson }};
+
     var readingsList = readings.map(function(reading) {
         return { date: new Date(reading.date), reading: reading.reading };
+    });
+    var eventsList = events.map(function(event) {
+        return { date: new Date(event.date), value: event.value };
     });
 
     readingsList.sort(function(a, b) {
         return a.date - b.date;
     });
+    eventsList.sort(function(a, b) {
+        return a.date - b.date;
+    });
+
 
     var dates = readingsList.map(function(reading) { return reading.date; });
 var values = readingsList.map(function(reading) { return reading.reading; });
@@ -101,6 +110,14 @@ var values = readingsList.map(function(reading) { return reading.reading; });
         y: readingsList.map(function(reading) { return reading.reading; }),
         mode: 'lines+markers',
         type: 'scatter'
+    };
+
+    var eventTrace = {
+        x: eventsList.map(function(event) { return event.date; }),
+        y: eventsList.map(function(event) { return event.value; }),
+        mode: 'markers',
+        type: 'scatter',
+        marker: { color: 'red' }
     };
 
     var barTrace = {
@@ -131,6 +148,7 @@ var values = readingsList.map(function(reading) { return reading.reading; });
 
     var lineData = [lineTrace];
     var barData = [barTrace];
+     var data = [lineTrace, eventTrace];
 
     var chartContainer = document.getElementById('chart-container');
     var tableContainer = document.getElementById('table-container');
@@ -149,50 +167,55 @@ var values = readingsList.map(function(reading) { return reading.reading; });
 }
 
 function updateChart(startDate, endDate) {
-    const filteredReadings = readingsList.filter(function(reading) {
-        return reading.date >= startDate && reading.date <= endDate;
-    });
-
-    const updatedDates = filteredReadings.map(function(reading) { return reading.date; });
-    const updatedValues = filteredReadings.map(function(reading) { return reading.reading; });
-
-    const updatedLineTrace = {
-        x: updatedDates,
-        y: updatedValues,
-        mode: 'lines+markers',
-        type: 'scatter'
-    };
-
-    const updatedBarTrace = {
-        x: updatedDates,
-        y: updatedValues,
-        type: 'bar'
-    };
-
-
-
-    const updatedLineData = [updatedLineTrace];
-    const updatedBarData = [updatedBarTrace];
-
-    Plotly.react(chartContainer, updatedLineData, layout);
-}
-
-function updateTable() {
-    var filteredReadings = readingsList;
-
-    if (selectedStartDate && selectedEndDate) {
-        filteredReadings = readingsList.filter(function(reading) {
-            return reading.date >= selectedStartDate && reading.date <= selectedEndDate;
+        const filteredReadings = readingsList.filter(function(reading) {
+            return reading.date >= startDate && reading.date <= endDate;
         });
+
+        const filteredEvents = eventsList.filter(function(event) {
+            return event.date >= startDate && event.date <= endDate;
+        });
+
+        const updatedReadingDates = filteredReadings.map(function(reading) { return reading.date; });
+        const updatedReadingValues = filteredReadings.map(function(reading) { return reading.reading; });
+
+        const updatedEventDates = filteredEvents.map(function(event) { return event.date; });
+        const updatedEventValues = filteredEvents.map(function(event) { return event.value; });
+
+        const updatedLineTrace = {
+            x: updatedReadingDates,
+            y: updatedReadingValues,
+            mode: 'lines+markers',
+            type: 'scatter'
+        };
+
+        const updatedEventTrace = {
+            x: updatedEventDates,
+            y: updatedEventValues,
+            mode: 'markers',
+            type: 'scatter',
+            marker: { color: 'red' },
+            name: 'Zdarzenia'
+        };
+
+        Plotly.react(chartContainer, [updatedLineTrace, updatedEventTrace], layout);
     }
 
-    var tableHTML = '<table class="table"><thead><tr><th>Data</th><th>' + getReadingUnit() + '</th></tr></thead><tbody>';
-    filteredReadings.forEach(function(reading) {
-        tableHTML += '<tr><td>' + formatDateForTable(reading.date) + '</td><td>' + reading.reading + '</td></tr>';
-    });
-    tableHTML += '</tbody></table>';
-    tableContainer.innerHTML = tableHTML;
-}
+function updateTable() {
+        var filteredReadings = readingsList;
+
+        if (selectedStartDate && selectedEndDate) {
+            filteredReadings = readingsList.filter(function(reading) {
+                return reading.date >= selectedStartDate && reading.date <= selectedEndDate;
+            });
+        }
+
+        var tableHTML = '<table class="table"><thead><tr><th>Data</th><th>' + getReadingUnit() + '</th></tr></thead><tbody>';
+        filteredReadings.forEach(function(reading) {
+            tableHTML += '<tr><td>' + formatDateForTable(reading.date) + '</td><td>' + reading.reading + '</td></tr>';
+        });
+        tableHTML += '</tbody></table>';
+        tableContainer.innerHTML = tableHTML;
+    }
 
     function formatDateForTable(date) {
         var options = { year: 'numeric', month: 'long', day: '2-digit', hour: '2-digit', minute: '2-digit' };
@@ -204,8 +227,8 @@ function updateTable() {
     }
 
     // Dodaj wykres liniowy i tabelę
-    Plotly.newPlot(chartContainer, [lineTrace], layout);
-    updateTable(readingsList);
+    Plotly.newPlot(chartContainer, data, layout);
+    updateTable();
 
     var rangeslider = document.querySelector('.rangeslider');
 if (rangeslider) {

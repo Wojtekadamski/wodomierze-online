@@ -67,11 +67,14 @@ class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     device_type = db.Column(db.String(20), nullable=False)
     event_type = db.Column(db.String(50), nullable=False)
-    date_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    value = db.Column(db.String(20))
-    first_occurrence = db.Column(db.DateTime)
-    last_occurrence = db.Column(db.DateTime)
+    reading_time = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    value = db.Column(db.String(20), nullable=True)
+    first_occurrence = db.Column(db.DateTime, nullable=True)
+    last_occurrence = db.Column(db.DateTime, nullable=True)
     meter_id = db.Column(db.Integer, db.ForeignKey('meter.id'), nullable=False)
+    number_of_occurrences = db.Column(db.Integer, nullable=True)
+    is_active = db.Column(db.Boolean, nullable=True)
+    duration = db.Column(db.DateTime, nullable=True)
 
 class MeterReading(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -81,6 +84,9 @@ class MeterReading(db.Model):
 
     def __repr__(self):
         return f"Meter(id={self.id}, radio_number='{self.radio_number}', type='{self.type}', user_id={self.user_id}, name='{self.name}')"
+
+    def get_reading_for_month(self, month):
+        return self.query.filter(db.extract('month', MeterReading.date) == month).first().reading
 
 
 class UserValidationLink(db.Model):
