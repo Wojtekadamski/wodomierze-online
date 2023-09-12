@@ -74,7 +74,7 @@
 <input type="text" id="search-meter-input-2" placeholder="Numer radiowy">
 <ul class="user-list limited-list" style="width: 250px" id="meter-list-2">
     {% for meter in unassigned_meters %}
-        <li class="meter-item" style="width: 150px">{{ meter.radio_number }} <a href="{{ url_for('main_routes.assign_meter', user_id=user.id, meter_id=meter.id) }}">Assign</a></li>
+        <li class="meter-item" style="width: 150px">{{ meter.radio_number }} <a href="{{ url_for('main_routes.assign_meter', user_id=user.id, meter_id=meter.id) }}">Przypisz</a></li>
     {% endfor %}
 </ul>
 

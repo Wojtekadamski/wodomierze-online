@@ -345,6 +345,7 @@ def assign_meter(user_id, meter_id):
 def delete_meters():
     try:
         Meter.query.delete()
+        MeterReading.query.delete()
         db.session.commit()
         flash('Wszystkie mierniki i odczyty zostały usunięte.', 'success')
     except Exception as e:

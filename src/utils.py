@@ -1,4 +1,7 @@
+import csv
+import os
 
+import chardet as chardet
 from sqlalchemy.exc import NoResultFound
 from src.models import db, Meter, MeterReading, UserValidationLink, Event
 from functools import wraps
@@ -25,7 +28,31 @@ def is_valid_link(user_link):
         return False
     return True
 def process_csv_water(file_path):
-    df = pd.read_csv(file_path)
+    # Detect the encoding of the file
+    # with open(file_path, 'rb') as f:
+    #     result = chardet.detect(f.read())
+    #
+    # # Get the detected encoding
+    # detected_encoding = result['encoding']
+    #
+    # # Create a temporary file to store the modified CSV data
+    # temp_file = os.path.splitext(file_path)[0] + '_temp.csv'
+    #
+    # # Replace semicolons with commas and write to the temporary file
+    # with open(file_path, 'r', encoding=detected_encoding) as infile, open(temp_file, 'w', newline='',
+    #                                                                       encoding='utf-8') as outfile:
+    #     reader = csv.reader(infile, delimiter=';')
+    #     writer = csv.writer(outfile, delimiter=',')
+    #     for row in reader:
+    #         writer.writerow(row)
+    #
+    # # Read the CSV file with the corrected encoding
+    try:
+        df = pd.read_csv(file_path)
+    except pd.errors.ParserError as e:
+        # Handle the error, e.g., by skipping lines with incorrect field counts
+        print(f"Error parsing CSV: {e}")
+        return
 
     month_mapping = {
         "styczeń": 1,

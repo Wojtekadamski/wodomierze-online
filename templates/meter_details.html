@@ -56,10 +56,10 @@
 </td>
 
        <form method="post" action="{{ url_for('main_routes.delete_meter', meter_id=meter.id) }}">
-    <button type="submit" class="btn btn-danger" onclick="return confirm('Czy na pewno chcesz usunąć ten licznik?')">Usuń licznik</button>
+    <button type="submit" class="btn btn-danger no-print" onclick="return confirm('Czy na pewno chcesz usunąć ten licznik?')">Usuń licznik</button>
 </form>
 <form method="post" action="{{ url_for('main_routes.clear_readings', meter_id=meter.id) }}">
-    <button type="submit" class="btn btn-warning" onclick="return confirm('Czy na pewno chcesz wyczyścić odczyty tego licznika?')">Wyczyść licznik</button>
+    <button type="submit" class="btn btn-warning no-print" onclick="return confirm('Czy na pewno chcesz wyczyścić odczyty tego licznika?')">Wyczyść licznik</button>
 </form>
 {% endif %}
 <h3 class="no-print">Odczyty</h3>
