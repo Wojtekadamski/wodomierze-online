@@ -6,6 +6,7 @@ def handle_internal_server_error(e):
     return redirect(url_for('main_routes.home'))
 
 
+
 def handle_not_found_error(e):
     flash('Error 404 - Strona nie została znaleziona.', 'danger')
     return redirect(url_for('main_routes.home'))
