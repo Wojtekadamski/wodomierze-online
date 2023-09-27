@@ -39,7 +39,7 @@ class User(UserMixin, db.Model):
     meters = db.relationship('Meter', backref='user', lazy='dynamic')
     is_active = db.Column(db.Boolean, default=True)
     notes = db.Column(db.Text)
-    is_superuser = db.Column(db.Boolean, default=False)
+    #is_superuser = db.Column(db.Boolean, default=False)
     unread_messages = db.Column(db.Integer, default=0)
 
 
