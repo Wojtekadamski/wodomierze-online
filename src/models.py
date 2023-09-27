@@ -43,6 +43,7 @@ class User(UserMixin, db.Model):
     unread_messages = db.Column(db.Integer, default=0)
 
 
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
