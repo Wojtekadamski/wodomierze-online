@@ -140,15 +140,13 @@ def create_admin():
     admin = User.query.filter_by(is_admin=True).first()
 
     if admin is None:
-        admin = User(password_hash=generate_password_hash(passes[1]), email=passes[0],
-                     is_admin=True)
+        admin = User(password_hash=generate_password_hash(passes[1]), email=passes[0],is_admin=True)
         db.session.add(admin)
         db.session.commit()
 def create_user_test():
     user = User.query.filter_by(email='user@gmail.com').first()
 
     if user is None:
-        user = User( password_hash=generate_password_hash(usercreds[1]), email=usercreds[0],
-                     is_admin=False)
+        user = User( password_hash=generate_password_hash(usercreds[1]), email=usercreds[0],is_admin=False)
         db.session.add(user)
         db.session.commit()
