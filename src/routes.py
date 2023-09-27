@@ -102,9 +102,15 @@ def upload_csv():
         file.save(file_path)
 
         if device_type == 'water':
-            process_csv_water(file_path)
+            result_message = process_csv_water(file_path)
+            if "Problem" in result_message:
+                flash(result_message, 'danger')
+                return redirect(url_for('main_routes.home'))
         elif device_type == 'heat':
-            process_csv_heat(file_path)
+            result_message = process_csv_heat(file_path)
+            if "Problem" in result_message:
+                flash(result_message, 'danger')
+                return redirect(url_for('main_routes.upload_csv'))
         elif device_type == 'events_water':
             # Nowy kod dla plików zdarzeń
             process_csv_events(file_path, 'water')
@@ -346,6 +352,7 @@ def delete_meters():
     try:
         Meter.query.delete()
         MeterReading.query.delete()
+        Address.query.delete()
         db.session.commit()
         flash('Wszystkie mierniki i odczyty zostały usunięte.', 'success')
     except Exception as e:

@@ -112,11 +112,11 @@ class Message(db.Model):
 
 class Address(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    city = db.Column(db.String(100), nullable=False)
-    street = db.Column(db.String(100), nullable=False)
-    building_number = db.Column(db.String(10), nullable=False)
-    apartment_number = db.Column(db.String(10))
-    postal_code = db.Column(db.String(20), nullable=False)
+    city = db.Column(db.String(100), nullable=True)
+    street = db.Column(db.String(100), nullable=True)
+    building_number = db.Column(db.String(10), nullable=True)
+    apartment_number = db.Column(db.String(10), nullable=True)
+    postal_code = db.Column(db.String(20), nullable=True)
 
 
 @login_manager.user_loader

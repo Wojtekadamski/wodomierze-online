@@ -6,7 +6,8 @@
 <h2>Szczegóły licznika</h2>
 <p>Numer radiowy: {{ meter.radio_number }}</p>
 {% if meter.address %}
-    <p>Adres: {{ meter.address.city }}, Ul.{{ meter.address.street }} {{ meter.address.building_number }} {% if meter.address.apartment_number %}/{{ meter.address.apartment_number }}{% endif %}, {{ meter.address.postal_code }}
+    <p>Adres: {% if meter.address.city != None %} {{ meter.address.city }},{% endif %} {% if meter.address.street != None %} Ul.{{ meter.address.street }} {{ meter.address.building_number }} {% if meter.address.apartment_number %} {% if meter.address.apartment_number != None %}/{{ meter.address.apartment_number }}
+    {% endif %} {% endif %} {% endif %}
     <button id="add-address-button" class="btn btn-primary no-print">Edytuj adres</button>
     </p>
 {% else %}
