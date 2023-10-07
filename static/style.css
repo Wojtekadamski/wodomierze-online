@@ -250,27 +250,32 @@ h1,h2,h3,h4,h5,h6{
         }
     }
 
-@media screen and (max-width: 768px) {
-    body {
-        background-attachment: scroll; /* Allow background to scroll on mobile */
-    }
+@media (max-width: 768px) {
+  /* Dostosuj style paska nawigacji dla urządzeń mobilnych tutaj */
+  .navbar {
+    height: auto; /* Umożliwienie dostosowania wysokości paska nawigacji do zawartości */
+    background-color: #343a40; /* Zmiana koloru tła na urządzenia mobilne */
+  }
 
-    .center-box, .footer {
-        margin-left: 0; /* Remove left margin to make content full-width */
-        width: 100%;
-    }
+  .navbar-brand {
+    margin: 0; /* Usunięcie marginesu dla logo */
+  }
 
-    .navbar {
-        height: auto; /* Adjust navbar height for mobile */
-    }
+  .navbar-collapse {
+    background-color: #343a40; /* Zmiana koloru tła zwiniętego menu */
+  }
 
-    .content-box {
-        display: block; /* Remove flex display for content on mobile */
-    }
+  .navbar-nav {
+    margin-top: 10px; /* Dodanie górnego marginesu do elementów paska nawigacji */
+  }
 
-    .left-box, .right-box {
-        width: 100%; /* Make boxes full-width on mobile */
-    }
+  .navbar-nav .nav-item {
+    text-align: center; /* Wyśrodkowanie elementów menu */
+    padding: 10px 0; /* Dodanie marginesu dla elementów menu, aby ułatwić dotknięcie na ekranie dotykowym */
+  }
 
-    /* You can add more specific styles for other elements as needed */
+  /* Styl dla przycisku rozwijania menu na urządzenia mobilne */
+  .navbar-toggler-icon {
+    background-color: #fff; /* Ustawienie koloru ikony przycisku rozwijania */
+  }
 }
