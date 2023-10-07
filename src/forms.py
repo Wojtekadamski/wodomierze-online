@@ -12,6 +12,7 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Hasło', validators=[DataRequired()])
     password2 = PasswordField('Powtórz hasło', validators=[DataRequired(), EqualTo('password')])
+    is_admin = BooleanField('Administrator')
     submit = SubmitField('Zarejestruj')
 
 
@@ -49,6 +50,7 @@ class UserForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Hasło', validators=[DataRequired()])
     confirm_password = PasswordField('Potwierdź hasło', validators=[DataRequired(), EqualTo('password')])
+    is_admin = BooleanField('Administrator')
     submit = SubmitField('Dodaj')
 
 class EditAccountForm(FlaskForm):

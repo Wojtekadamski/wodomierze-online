@@ -219,6 +219,8 @@ def admin_panel():
     if user_form.validate_on_submit():
         user = User(email=user_form.email.data)
         user.set_password(user_form.password.data)
+        if user_form.is_admin.data:
+            user.is_admin = True
         db.session.add(user)
         db.session.commit()
         flash('Użytkownik został dodany.')
@@ -242,6 +244,8 @@ def add_user():
             return redirect(url_for('main_routes.admin_panel'))
         user = User(email=user_form.email.data)
         user.set_password(user_form.password.data)
+        if user_form.is_admin.data:
+            user.is_admin = True
         db.session.add(user)
         db.session.commit()
         flash('Dodawanie użytkownika przebiegło pomyślnie.')
