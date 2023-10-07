@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Add User</h2>
+    <h2>Dodaj użytkownikagggggggggg</h2>
     <form method="POST" action="{{ url_for('main_routes.add_user') }}">
         {{ form.hidden_tag() }}
         <div class="form-group">
@@ -16,6 +16,11 @@
             {{ form.confirm_password.label() }}
             {{ form.confirm_password(class="form-control") }}
         </div>
+
+        <div class="form-check">
+        {{ form.is_admin(class="form-check-input") }}
+        {{ form.is_admin.label(class="form-check-label") }}
+    </div>
 
         <button type="submit" class="btn btn-primary">Add User</button>
     </form>
