@@ -269,6 +269,7 @@ h1,h2,h3,h4,h5,h6{
     margin-top: 10px; /* Dodanie górnego marginesu do elementów paska nawigacji */
   }
 
+
   .navbar-nav .nav-item {
     text-align: center; /* Wyśrodkowanie elementów menu */
     padding: 10px 0; /* Dodanie marginesu dla elementów menu, aby ułatwić dotknięcie na ekranie dotykowym */
