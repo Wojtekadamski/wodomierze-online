@@ -16,23 +16,6 @@
         </ul>
     </div>
 
-    <div>
-        <h3>Wolne liczniki</h3>
-        <form method="POST" action="{{ url_for('main_routes.assign_meters_to_user', user_id=user.id) }}">
-            <div class="form-group">
-                <textarea name="meter_list" class="form-control" rows="4" placeholder="Wprowadź numery radiowe liczników"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Przypisz liczniki</button>
-        </form>
-
-    <input type="text" id="search-meter-input-2" placeholder="Numer radiowy">
-<ul class="user-list limited-list" style="width: 250px" id="meter-list-2">
-    {% for meter in available_meters %}
-        <li class="meter-item" style="width: 150px">{{ meter.radio_number }} <a href="{{ url_for('main_routes.assign_meter', user_id=user.id, meter_id=meter.id) }}">Przypisz</a></li>
-    {% endfor %}
-</ul>
-    </div>
-
     <script>
 function confirmDelete(meterId) {
     if (confirm("Czy chcesz usunąć ten licznik?")) {

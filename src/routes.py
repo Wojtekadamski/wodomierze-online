@@ -322,7 +322,7 @@ def remove_meter(meter_id):
     if meter.user:
         user_id = meter.user.id
         # Dodatkowa weryfikacja dla superusera
-        if meter.user.superuser_id != current_user.id:
+        if meter.user.superuser_id != current_user.id and not current_user.is_admin:
             flash('Brak uprawnień do odłączenia tego licznika.', 'danger')
             return redirect(url_for('main_routes.superuser_user_overview', user_id=user_id))
     else:
@@ -380,6 +380,8 @@ def assign_meter(user_id, meter_id):
                 return redirect(url_for('main_routes.superuser_user_overview', user_id=user_id))
         else:
             meter.user_id = user.id
+            if user.superuser_id:
+                meter.superuser_id = user.superuser_id
         db.session.commit()
         flash('Licznik został pomyślnie przypisany.', 'success')
     else:
@@ -652,6 +654,7 @@ def superuser_panel():
     meters = Meter.query.filter_by(superuser_id=current_user.id).all()
     return render_template('superuser_panel.html', users=users, meters=meters, user_form=user_form)
 
+
 @main_routes.route('/assign_user_to_superuser/<int:superuser_id>/<int:user_id>', methods=['POST'])
 @admin_required
 def assign_user_to_superuser(superuser_id, user_id):
@@ -663,6 +666,11 @@ def assign_user_to_superuser(superuser_id, user_id):
         return redirect(url_for('main_routes.user_overview', user_id=superuser_id))
 
     user_to_assign.superuser_id = superuser_id
+
+    for meter in user_to_assign.meters:
+        meter.superuser_id = superuser_id
+
+
     db.session.commit()
     flash('Użytkownik został przypisany do superusera.', 'success')
 
