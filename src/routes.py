@@ -683,6 +683,11 @@ def remove_assigned_user(user_id):
     assigned_user = User.query.get_or_404(user_id)
 
     # Sprawdzenie, czy obecny użytkownik ma uprawnienia do usunięcia przypisania
+    if current_user.is_admin:
+        assigned_user.superuser_id = None
+        db.session.commit()
+        flash('Przypisanie użytkownika zostało usunięte.', 'success')
+        return redirect(url_for('main_routes.user_overview', user_id=current_user.id))
     if current_user.is_superuser and assigned_user.superuser_id == current_user.id:
         assigned_user.superuser_id = None
         db.session.commit()
