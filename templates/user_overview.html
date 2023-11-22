@@ -7,6 +7,9 @@
     <!-- Informacje o użytkowniku -->
     <div class="user-info">
         <h4>Email: {{ user.email }}</h4>
+    {% if is_superuser %}
+        <h4 style="color: #681919;">Superuser</h4>
+    {% endif %}
         <h5>Notatki o użytkowniku</h5>
     <div id="notes-display-field">
     {% if user.notes and user.notes.strip() != '' %}
@@ -30,10 +33,32 @@
         <h3>Przypisane liczniki</h3>
     <input type="text" id="search-meter-input-assigned" placeholder="Numer radiowy">
         <ul class="meter-list limited-list" style="max-height: 200px; max-width: 400px" id="meter-list-assigned">
+        {% if is_superuser %}
+            {% for meter in assigned_meters %}
+            <li class="meter-item" style="width: 300px">{{ meter.radio_number }} - <a href="{{ url_for('main_routes.meter_details', meter_id=meter.id) }}">Szczegóły</a> | <button class="btn btn-danger" onclick="confirmDelete('{{ meter.id }}')">Usuń</button></li>
+        {% endfor %}
+        {% endif %}
+        {% if not is_superuser %}
             {% for meter in user.meters %}
                 <li class="meter-item" style="width: 300px">{{ meter.radio_number }} - <a href="{{ url_for('main_routes.meter_details', meter_id=meter.id) }}">Szczegóły</a> | <button class="btn btn-danger" onclick="confirmDelete('{{ meter.id }}')">Usuń</button></li>
             {% endfor %}
+        {% endif %}
         </ul>
+    {% if user.is_superuser %}
+    <div class="assigned-users">
+        <h3>Przypisani użytkownicy</h3>
+        <input type="text" id="search-user-input" placeholder="Adres email">
+        <ul class="user-list limited-list" style="max-height: 200px; max-width: 400px" id="user-list">
+            {% for assigned_user in user.assigned_users %}
+                <li class="user-item" style="width: 300px">
+                    {{ assigned_user.email }} -
+                    <a href="{{ url_for('main_routes.user_overview', user_id=assigned_user.id) }}">Podejrzyj</a> |
+                    <a href="{{ url_for('main_routes.remove_assigned_user', user_id=assigned_user.id) }}" onclick="return confirm('Czy na pewno chcesz usunąć przypisanie tego użytkownika?')">Usuń</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endif %}
     </div>
 
     <!-- Formularz dodawania licznika -->
@@ -72,11 +97,25 @@
 <br />
 
 <input type="text" id="search-meter-input-2" placeholder="Numer radiowy">
-<ul class="user-list limited-list" style="width: 250px" id="meter-list-2">
+<ul class="user-list limited-list" style="width: 550px" id="meter-list-2">
     {% for meter in unassigned_meters %}
         <li class="meter-item" style="width: 150px">{{ meter.radio_number }} <a href="{{ url_for('main_routes.assign_meter', user_id=user.id, meter_id=meter.id) }}">Przypisz</a></li>
     {% endfor %}
 </ul>
+
+    {% if is_superuser %}
+        <h4>Wolni użytkownicy:</h4>
+    <ul>
+        {% for unassigned_user in unassigned_users %}
+            <li>
+                {{ unassigned_user.email }}
+                <form method="POST" action="{{ url_for('main_routes.assign_user_to_superuser', superuser_id=user.id, user_id=unassigned_user.id) }}">
+                    <button type="submit" class="btn btn-primary">Przypisz do Superusera</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
 
     <button class="btn btn-danger" onclick="showPasswordInput()">Usuń Użytkownika</button>
     <form id="deleteUserForm" method="POST" action="{{ url_for('main_routes.delete_user', user_id=user.id) }}" style="display: none;">
@@ -104,6 +143,24 @@
             deleteUserForm.style.display = 'block';
         }
     </script>
+
+    <script>
+    document.getElementById('search-user-input').addEventListener('keyup', function() {
+        var searchQuery = this.value.toLowerCase();
+        var userList = document.getElementById('user-list');
+        var users = userList.getElementsByClassName('user-item');
+
+        for (var i = 0; i < users.length; i++) {
+            var currentEmail = users[i].textContent || users[i].innerText;
+            if (currentEmail.toLowerCase().indexOf(searchQuery) > -1) {
+                users[i].style.display = "";
+            } else {
+                users[i].style.display = "none";
+            }
+        }
+    });
+</script>
+
     <script>
     const searchMeterInputAssigned = document.getElementById('search-meter-input-assigned');
     const meterListAssigned = document.getElementById('meter-list-assigned');

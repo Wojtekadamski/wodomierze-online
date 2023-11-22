@@ -30,16 +30,33 @@ def get_user_by_random_id(random_id):
     user = User.query.filter_by(random_id=random_id).first()
     return user
 
+class Meter(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    radio_number = db.Column(db.String(64), unique=True, index=True)
+    type = db.Column(db.String(64))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    readings = db.relationship('MeterReading', backref='meter', lazy='dynamic')
+    name = db.Column(db.String(100), nullable=True)
+    events = db.relationship('Event', backref='meter', lazy=True)
+    address_id = db.Column(db.Integer, db.ForeignKey('address.id'))
+    address = db.relationship('Address', backref='meter', lazy=True)
+    # Relacja do śledzenia, który superużytkownik posiada licznik
+    superuser_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    superuser_owner = db.relationship('User', foreign_keys=[superuser_id], backref='owned_meters')
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
    # random_id = generate_random_id(10)
     email = db.Column(db.String(120), unique=True, index=True)
     password_hash = db.Column(db.String(128))
     is_admin = db.Column(db.Boolean, default=False)
-    meters = db.relationship('Meter', backref='user', lazy='dynamic')
+    meters = db.relationship('Meter', foreign_keys=[Meter.user_id], backref='user', lazy='dynamic')
     is_active = db.Column(db.Boolean, default=True)
     notes = db.Column(db.Text)
-    #is_superuser = db.Column(db.Boolean, default=False)
+    is_superuser = db.Column(db.Boolean, default=False)
+    superuser_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    # Relacja do przypisania użytkowników do superużytkownika
+    assigned_users = db.relationship('User', backref=db.backref('superuser', remote_side=[id]), lazy='dynamic')
     unread_messages = db.Column(db.Integer, default=0)
 
 
@@ -53,16 +70,7 @@ class User(UserMixin, db.Model):
 
 
 
-class Meter(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    radio_number = db.Column(db.String(64), unique=True, index=True)
-    type = db.Column(db.String(64))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    readings = db.relationship('MeterReading', backref='meter', lazy='dynamic')
-    name = db.Column(db.String(100), nullable=True)
-    events = db.relationship('Event', backref='meter', lazy=True)
-    address_id = db.Column(db.Integer, db.ForeignKey('address.id'))
-    address = db.relationship('Address', backref='meter', lazy=True)
+
 
 
 class Event(db.Model):
@@ -141,7 +149,7 @@ def create_admin():
     admin = User.query.filter_by(is_admin=True).first()
 
     if admin is None:
-        admin = User(password_hash=generate_password_hash(passes[1]), email=passes[0],is_admin=True)
+        admin = User(password_hash=generate_password_hash(passes[1]), email=passes[0],is_admin=True,)
         db.session.add(admin)
         db.session.commit()
 def create_user_test():

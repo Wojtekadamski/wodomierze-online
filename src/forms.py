@@ -5,7 +5,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, Selec
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
 
 from src.config import ALLOWED_EXTENSIONS
-from src.models import User
+from src.models import User, Meter
 
 
 class RegistrationForm(FlaskForm):
@@ -51,6 +51,7 @@ class UserForm(FlaskForm):
     password = PasswordField('Hasło', validators=[DataRequired()])
     confirm_password = PasswordField('Potwierdź hasło', validators=[DataRequired(), EqualTo('password')])
     is_admin = BooleanField('Administrator')
+    is_superuser = BooleanField('Superuser')
     submit = SubmitField('Dodaj')
 
 class EditAccountForm(FlaskForm):
@@ -83,4 +84,27 @@ class MessageForm(FlaskForm):
     recipient = SelectField('Odbiorca', choices=[], validators=[DataRequired()])
     send_to_all = BooleanField('Wyślij do wszystkich')
     submit = SubmitField('Wyślij')
+
+
+class AssignMeterToSuperuserForm(FlaskForm):
+    superuser_id = SelectField('Superużytkownik', coerce=int, validators=[DataRequired()])
+    meter_id = SelectField('Licznik', coerce=int, validators=[DataRequired()])
+    submit = SubmitField('Przypisz Licznik')
+
+    def __init__(self, *args, **kwargs):
+        super(AssignMeterToSuperuserForm, self).__init__(*args, **kwargs)
+        self.superuser_id.choices = [(u.id, u.email) for u in User.query.filter_by(is_superuser=True).all()]
+        self.meter_id.choices = [(m.id, m.radio_number) for m in Meter.query.all()]
+
+
+class AssignMeterToUserForm(FlaskForm):
+    user_id = SelectField('Użytkownik', coerce=int, validators=[DataRequired()])
+    meter_id = SelectField('Licznik', coerce=int, validators=[DataRequired()])
+    submit = SubmitField('Przypisz Licznik')
+
+    def __init__(self, superuser_id, *args, **kwargs):
+        super(AssignMeterToUserForm, self).__init__(*args, **kwargs)
+        self.user_id.choices = [(u.id, u.email) for u in User.query.filter_by(superuser_id=superuser_id).all()]
+        self.meter_id.choices = [(m.id, m.radio_number) for m in Meter.query.filter_by(owned_by_superuser=superuser_id).all()]
+
 

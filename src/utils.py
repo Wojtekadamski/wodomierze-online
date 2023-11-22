@@ -21,6 +21,14 @@ def admin_required(func):
 
     return decorated_function
 
+def superuser_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not (current_user.is_admin or current_user.is_superuser):
+            flash('Brak uprawnień do tej strony.', 'danger')
+            return redirect(url_for('main_routes.home'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'csv'

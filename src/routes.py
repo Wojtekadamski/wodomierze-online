@@ -4,10 +4,12 @@ from flask import render_template, flash, redirect, url_for, Blueprint, request,
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from src.config import UPLOAD_FOLDER, EMAIL_KEY
-from src.forms import LoginForm, RegistrationForm, MeterForm, MeterReadingForm, UploadForm, UserForm, EditAccountForm, UserNotesForm, UserOverviewForm, MessageForm
+from src.forms import LoginForm, RegistrationForm, MeterForm, MeterReadingForm, UploadForm, UserForm, EditAccountForm, \
+    UserNotesForm, UserOverviewForm, MessageForm, AssignMeterToSuperuserForm, AssignMeterToUserForm
 from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address
 import os
-from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events
+from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events, \
+    superuser_required
 from cryptography.fernet import Fernet
 
 cipher = Fernet(EMAIL_KEY)
@@ -27,6 +29,8 @@ def home():
     if current_user.is_authenticated:
         if current_user.is_admin:
             return redirect(url_for("main_routes.admin_panel"))
+        if current_user.is_superuser:
+            return redirect(url_for("main_routes.superuser_panel"))
         user = current_user
         assigned_meters = user.meters
         return render_template('home.html', assigned_meters=assigned_meters)
@@ -54,7 +58,6 @@ def login():
         return redirect(url_for('main_routes.home'))
 
     return render_template('login.html', form=form)
-
 
 
 @main_routes.route('/logout')
@@ -136,15 +139,17 @@ def user_meters():
 def meter_details(meter_id):
     meter = Meter.query.get_or_404(meter_id)
     user = meter.user
-    events=meter.events
-    if current_user != meter.user and not current_user.is_admin:
+    events = meter.events
+    # Sprawdzenie, czy bieżący użytkownik to właściciel licznika, administrator, lub superużytkownik z dostępem do tego licznika
+    if current_user != meter.user and not current_user.is_admin and not (
+            current_user.is_superuser and meter.superuser_id == current_user.id):
         flash('Brak uprawnień do wyświetlenia tych szczegółów.', 'danger')
         return redirect(url_for('main_routes.home'))
 
-
     readings = MeterReading.query.filter_by(meter_id=meter.id).all()
     readings_list = [{"date": reading.date, "reading": reading.reading} for reading in readings]
-    return render_template('meter_details.html', meter=meter, readings=readings_list, user=user,events=events)
+    return render_template('meter_details.html', meter=meter, readings=readings_list, user=user, events=events)
+
 
 @main_routes.route('/delete_meter/<int:meter_id>', methods=['POST'])
 @admin_required
@@ -155,6 +160,7 @@ def delete_meter(meter_id):
     flash('Licznik został usunięty.', 'success')
     return redirect(url_for('main_routes.admin_panel'))
 
+
 @main_routes.route('/clear_readings/<int:meter_id>', methods=['POST'])
 @admin_required
 def clear_readings(meter_id):
@@ -163,7 +169,6 @@ def clear_readings(meter_id):
     db.session.commit()
     flash('Odczyty licznika zostały wyczyszczone.', 'success')
     return redirect(url_for('main_routes.meter_details', meter_id=meter_id))
-
 
 
 @main_routes.route('/update_meter_name/<int:meter_id>', methods=['POST'])
@@ -181,6 +186,7 @@ def update_meter_name(meter_id):
     else:
         flash('Nie masz uprawnień do zmiany nazwy licznika.', 'danger')
     return redirect(url_for('main_routes.meter_details', meter_id=meter.id))
+
 
 @main_routes.route('/update_meter_address/<int:meter_id>', methods=['POST'])
 @login_required
@@ -210,7 +216,6 @@ def update_meter_address(meter_id):
     return redirect(url_for('main_routes.meter_details', meter_id=meter.id))
 
 
-
 @main_routes.route('/admin_panel', methods=['GET'])
 @admin_required  # Dodaj dekorator, aby wymagać uprawnień administratora
 def admin_panel():
@@ -221,6 +226,8 @@ def admin_panel():
         user.set_password(user_form.password.data)
         if user_form.is_admin.data:
             user.is_admin = True
+        if user_form.is_superuser.data:
+            user.is_superuser = True
         db.session.add(user)
         db.session.commit()
         flash('Użytkownik został dodany.')
@@ -229,6 +236,7 @@ def admin_panel():
     users = get_all_users()
     meters = Meter.query.all()
     return render_template('admin_panel.html', users=users, meters=meters, user_form=user_form)
+
 
 @main_routes.route('/add_user', methods=['GET', 'POST'])
 @admin_required
@@ -246,6 +254,8 @@ def add_user():
         user.set_password(user_form.password.data)
         if user_form.is_admin.data:
             user.is_admin = True
+        if user_form.is_superuser.data:
+            user.is_superuser = True
         db.session.add(user)
         db.session.commit()
         flash('Dodawanie użytkownika przebiegło pomyślnie.')
@@ -260,8 +270,16 @@ def add_user():
 @admin_required
 def user_overview(user_id):
     user = User.query.get(user_id)
+    is_superuser = user.is_superuser
     available_meters = Meter.query.filter_by(user_id=None).all()
     unassigned_meters = Meter.query.filter_by(user=None).all()
+    assigned_users = []
+    unassigned_users = []
+    assigned_meters = []
+    if is_superuser:
+        assigned_users = User.query.filter(User.superuser_id == user_id).all()
+        unassigned_users = User.query.filter(User.superuser_id == None).all()
+        assigned_meters = Meter.query.filter_by(superuser_id=user_id).all()
 
     user_form = UserForm()
     user_notes_form = UserOverviewForm()  # Dodaj nowy formularz dla notatek
@@ -289,23 +307,34 @@ def user_overview(user_id):
         user_form=user_form,
         user_notes_form=user_notes_form,  # Przekaż nowy formularz do szablonu
         users=users,
-        meters=meters
+        meters=meters,
+        is_superuser=is_superuser,
+        assigned_users=assigned_users,
+        unassigned_users=unassigned_users,
+        assigned_meters=assigned_meters,
     )
+
+
 @main_routes.route('/remove_meter/<int:meter_id>')
-@admin_required
+@superuser_required
 def remove_meter(meter_id):
     meter = Meter.query.get_or_404(meter_id)
     if meter.user:
         user_id = meter.user.id
+        # Dodatkowa weryfikacja dla superusera
+        if meter.user.superuser_id != current_user.id:
+            flash('Brak uprawnień do odłączenia tego licznika.', 'danger')
+            return redirect(url_for('main_routes.superuser_user_overview', user_id=user_id))
     else:
         user_id = None
     meter.user = None
 
     db.session.commit()
     flash('Licznik został odłączony od użytkownika.', 'success')
-    return redirect(url_for('main_routes.user_overview', user_id=user_id))
-
-
+    if current_user.is_superuser:
+        return redirect(url_for('main_routes.superuser_user_overview', user_id=user_id))
+    else:
+        return redirect(url_for('main_routes.user_overview', user_id=user_id))
 
 
 @main_routes.route('/add_meter', methods=['GET', 'POST'])
@@ -320,6 +349,7 @@ def add_meter():
         return redirect(url_for('main_routes.admin_panel'))
     return render_template('add_meter.html', form=form)
 
+
 @main_routes.route('/edit_account', methods=['GET', 'POST'])
 @login_required
 def edit_account():
@@ -331,24 +361,35 @@ def edit_account():
         flash('Hasło zostało zmienione.')
         return redirect(url_for('main_routes.home'))
 
-    return render_template('edit_account.html', form=form,user_email=user_email)
-
+    return render_template('edit_account.html', form=form, user_email=user_email)
 
 
 @main_routes.route('/user/<int:user_id>/assign_meter/<int:meter_id>', methods=['GET', 'POST'])
-@admin_required
+@superuser_required
 def assign_meter(user_id, meter_id):
     user = User.query.get(user_id)
     meter = Meter.query.get(meter_id)
 
     if user and meter:
-        meter.user = user
+        if current_user.is_superuser:
+            # Dodatkowa weryfikacja dla superusera
+            if meter.superuser_id == current_user.id and user.superuser_id == current_user.id:
+                meter.user_id = user.id
+            else:
+                flash('Brak uprawnień do przypisania tego licznika.', 'danger')
+                return redirect(url_for('main_routes.superuser_user_overview', user_id=user_id))
+        else:
+            meter.user_id = user.id
         db.session.commit()
         flash('Licznik został pomyślnie przypisany.', 'success')
     else:
         flash('Wystąpił błąd przy przypisaniu licznika.', 'danger')
 
-    return redirect(url_for('main_routes.user_overview', user_id=user_id))
+    if current_user.is_superuser:
+        return redirect(url_for('main_routes.superuser_user_overview', user_id=user_id))
+    else:
+        return redirect(url_for('main_routes.user_overview', user_id=user_id))
+
 
 @main_routes.route('/delete_meters', methods=['POST'])
 @admin_required
@@ -367,7 +408,7 @@ def delete_meters():
 
 
 @main_routes.route('/delete_user/<int:user_id>', methods=['POST'])
-@login_required
+@admin_required
 def delete_user(user_id):
     user = User.query.get(user_id)
     admin_password = request.form.get('admin_password')
@@ -384,8 +425,9 @@ def delete_user(user_id):
     flash('Użytkownik został usunięty.', 'success')
     return redirect(url_for('main_routes.admin_panel'))
 
+
 @main_routes.route('/deactivate_user/<int:user_id>', methods=['POST'])
-@login_required
+@admin_required
 def deactivate_user(user_id):
     user = User.query.get(user_id)
     if user.is_active:
@@ -464,7 +506,7 @@ def delete_message(message_id):
 
 
 @main_routes.route('/assign_meters_to_user/<int:user_id>', methods=['POST'])
-@login_required
+@admin_required
 def assign_meters_to_user(user_id):
     user = User.query.get_or_404(user_id)
 
@@ -487,6 +529,7 @@ def assign_meters_to_user(user_id):
     return redirect(url_for('main_routes.user_overview', successfully_assigned=successfully_assigned,
                             not_assigned=not_assigned, user=user, user_id=user.id))
 
+
 @main_routes.route('/summary', methods=['GET', 'POST'])
 def summary():
     filtered_readings = []
@@ -506,3 +549,137 @@ def summary():
         ).all()
 
     return render_template('summary.html', readings=filtered_readings)
+
+
+@main_routes.route('/admin/assign_meter_to_superuser', methods=['GET', 'POST'])
+@admin_required
+def assign_meter_to_superuser():
+    if not current_user.is_admin:
+        flash('Brak uprawnień', 'danger')
+        return redirect(url_for('main_routes.home'))
+
+    form = AssignMeterToSuperuserForm()
+    if form.validate_on_submit():
+        meter = Meter.query.get(form.meter_id.data)
+        superuser = User.query.get(form.superuser_id.data)
+        if meter and superuser:
+            meter.superuser_id = superuser.id
+            db.session.commit()
+            flash('Licznik przypisany do superużytkownika', 'success')
+        else:
+            flash('Błąd podczas przypisywania licznika', 'danger')
+        return redirect(url_for('main_routes.admin_dashboard'))
+
+    return render_template('admin/assign_meter_to_superuser.html', form=form)
+
+
+@main_routes.route('/superuser/assign_meter', methods=['GET', 'POST'])
+@login_required
+def superuser_assign_meter():
+    if not current_user.is_superuser:
+        flash('Brak uprawnień', 'danger')
+        return redirect(url_for('main_routes.home'))
+
+    form = AssignMeterToUserForm(superuser_id=current_user.id)
+    if form.validate_on_submit():
+        user = User.query.get(form.user_id.data)
+        meter = Meter.query.get(form.meter_id.data)
+        if user and meter:
+            # Logika przypisywania licznika do użytkownika
+            flash('Licznik przypisany do użytkownika', 'success')
+        else:
+            flash('Błąd podczas przypisywania licznika', 'danger')
+        return redirect(url_for('main_routes.superuser_dashboard'))
+
+    return redirect(url_for('main_routes.superuser_dashboard', form=form, user_id=form.user_id.data))
+
+
+@main_routes.route('/superuser_user_overview/<int:user_id>', methods=['GET', 'POST'])
+@superuser_required
+def superuser_user_overview(user_id):
+    user = User.query.get(user_id)
+    users = User.query.filter_by(superuser_id=current_user.id).all()
+    if user.superuser_id != current_user.id:
+        flash('Brak dostępu do tego użytkownika.', 'danger')
+        return redirect(url_for('main_routes.home'))
+
+    # Pobieranie liczników przypisanych do superużytkownika, ale nieprzypisanych do żadnego użytkownika
+    available_meters = Meter.query.filter_by(superuser_id=current_user.id, user_id=None).all()
+
+    user_form = UserForm(obj=user)
+    user_notes_form = UserOverviewForm(obj=user)
+
+    if 'meter_id' in request.form and request.form['meter_id']:
+        meter_id = int(request.form.get('meter_id'))
+        meter = Meter.query.get(meter_id)
+        if meter.superuser_id == current_user.id:
+            meter.user_id = user.id
+            db.session.commit()
+            flash('Licznik został pomyślnie przypisany do użytkownika.')
+        else:
+            flash('Nie masz uprawnień do przypisania tego licznika.', 'danger')
+
+    if user_notes_form.validate_on_submit():
+        user.notes = user_notes_form.notes.data
+        db.session.commit()
+        flash('Notatki zostały zaktualizowane.')
+
+    return render_template(
+        'superuser_user_overview.html',
+        user=user,
+        available_meters=available_meters,
+        user_form=user_form,
+        user_notes_form=user_notes_form,
+        users=users,
+    )
+
+
+@main_routes.route('/superuser_panel', methods=['GET', 'POST'])
+@login_required
+def superuser_panel():
+    user_form = UserForm()
+
+    if user_form.validate_on_submit():
+        user = User(email=user_form.email.data)
+        user.set_password(user_form.password.data)
+        user.superuser_id = current_user.id  # Przypisanie użytkownika do superużytkownika
+        db.session.add(user)
+        db.session.commit()
+        flash('Użytkownik został dodany.')
+        return redirect(url_for('main_routes.superuser_panel'))
+
+    users = User.query.filter_by(superuser_id=current_user.id).all()
+    meters = Meter.query.filter_by(superuser_id=current_user.id).all()
+    return render_template('superuser_panel.html', users=users, meters=meters, user_form=user_form)
+
+@main_routes.route('/assign_user_to_superuser/<int:superuser_id>/<int:user_id>', methods=['POST'])
+@admin_required
+def assign_user_to_superuser(superuser_id, user_id):
+    superuser = User.query.get_or_404(superuser_id)
+    user_to_assign = User.query.get_or_404(user_id)
+
+    if not superuser.is_superuser:
+        flash('Wybrany użytkownik nie jest superuserem.', 'error')
+        return redirect(url_for('main_routes.user_overview', user_id=superuser_id))
+
+    user_to_assign.superuser_id = superuser_id
+    db.session.commit()
+    flash('Użytkownik został przypisany do superusera.', 'success')
+
+    return redirect(url_for('main_routes.user_overview', user_id=superuser_id))
+
+
+@main_routes.route('/remove_assigned_user/<int:user_id>')
+@superuser_required
+def remove_assigned_user(user_id):
+    assigned_user = User.query.get_or_404(user_id)
+
+    # Sprawdzenie, czy obecny użytkownik ma uprawnienia do usunięcia przypisania
+    if current_user.is_superuser and assigned_user.superuser_id == current_user.id:
+        assigned_user.superuser_id = None
+        db.session.commit()
+        flash('Przypisanie użytkownika zostało usunięte.', 'success')
+    else:
+        flash('Brak uprawnień do usunięcia przypisania tego użytkownika.', 'danger')
+
+    return redirect(url_for('main_routes.user_overview', user_id=current_user.id))

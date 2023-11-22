@@ -5,7 +5,7 @@ from werkzeug.exceptions import InternalServerError, NotFound, Forbidden, Unauth
 from src.config import Config
 from src.error_handlers import handle_internal_server_error, handle_not_found_error, handle_forbidden_error, \
     handle_unauthorized_error
-from src.models import db, create_admin, login_manager, create_user_test
+from src.models import db,  login_manager,create_admin, create_user_test
 from src.routes import main_routes
 
 

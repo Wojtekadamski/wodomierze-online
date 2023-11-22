@@ -56,6 +56,10 @@
         {{ user_form.is_admin(class="form-check-input") }}
         {{ user_form.is_admin.label(class="form-check-label") }}
     </div>
+    <div class="form-check">
+        {{ user_form.is_superuser(class="form-check-input") }}
+        {{ user_form.is_superuser.label(class="form-check-label") }}
+    </div>
     <button type="submit" class="btn btn-primary">Dodaj</button>
 </form>
 

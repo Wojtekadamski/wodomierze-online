@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Panel Superużytkownika</h2>
+    <div class="content-box">
+        <div class="left-box" style="width: 25%">
+            <h3>Lista użytkowników</h3>
+            <input type="text" id="search-user-input" placeholder="Adres email" class="search-bar">
+            <ul class="user-list limited-list" style="width: 320px" id="user-list">
+                {% for user in users %}
+                    <li class="user-item">
+                        <a href="{{ url_for('main_routes.superuser_user_overview', user_id=user.id) }}">{{ user.email }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="right-box user-overview-container">
+            {% block user %}
+            {% endblock user %}
+        </div>
+    </div>
+
+    <script>
+        const searchUserInput = document.getElementById('search-user-input');
+        const userList = document.getElementById('user-list');
+        const userItems = userList.querySelectorAll('.user-item');
+
+        searchUserInput.addEventListener('input', function() {
+            const searchTerm = searchUserInput.value.toLowerCase();
+
+            userItems.forEach(function(item) {
+                const userEmail = item.textContent.trim().toLowerCase();
+                if (userEmail.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    </script>
+{% endblock %}
