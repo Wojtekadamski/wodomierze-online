@@ -18,7 +18,9 @@
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
     <a class="navbar-brand" href="{{ url_for('main_routes.home') }}"><img src="{{ url_for('static', filename='img/Zdalny_Odczyt_RGB.png') }}" alt="Logo" class="logo">
         </a>
+    {% if current_user.is_authenticated %}
     <p class="navbar-brand">Witaj, {{ current_user.email.split('@')[0] }}!</p>
+    {% endif %}
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
 </button>
