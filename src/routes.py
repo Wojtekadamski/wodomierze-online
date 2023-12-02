@@ -333,6 +333,7 @@ def remove_meter(meter_id):
     else:
         user_id = None
     meter.user = None
+    meter.superuser_id = None
 
     db.session.commit()
     flash('Licznik został odłączony od użytkownika.', 'success')
