@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Raport</h2>
+    <div class="report-actions no-print">
+    <button id="download-csv">Pobierz CSV</button>
+    <button id="download-json">Pobierz JSON</button>
+    <button id="print-pdf">Drukuj PDF</button>
+</div>
+<div class="report-table-container">
+    <table class="report-table">
+        <tr>
+            <th>Email Użytkownika</th>
+            <th>Nr Radiowy</th>
+            <th>Typ Licznika</th>
+            <th>Pomiary</th>
+            <th>Data Odczytu</th>
+        </tr>
+        {% for data in report_data %}
+        <tr class="{{ loop.cycle('odd-row', 'even-row') }}">
+            <td>{{ data.user_email }}</td>
+            <td>{{ data.meter_number }}</td>
+            <td>{{ data.meter_type }}</td>
+            <td>{{ data.reading }}</td>
+            <td>{{ data.reading_date }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+
+ <script>
+    // Funkcja do konwersji danych na format CSV
+    function convertToCSV(data) {
+        const csvRows = [];
+        const headers = Object.keys(data[0]);
+        csvRows.push(headers.join(','));
+
+        for (const row of data) {
+            const values = headers.map(header => {
+                const escaped = ('' + row[header]).replace(/"/g, '\\"');
+                return `"${escaped}"`;
+            });
+            csvRows.push(values.join(','));
+        }
+
+        return csvRows.join('\n');
+    }
+
+    // Funkcja do pobierania danych jako pliku
+    function download(filename, text) {
+        const element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+    }
+
+    // Obsługa przycisku pobierania CSV
+    document.getElementById('download-csv').addEventListener('click', function() {
+        const data = {{ report_data | tojson }};
+        const csvData = convertToCSV(data);
+        download('raport.csv', csvData);
+    });
+
+    // Obsługa przycisku pobierania JSON
+    document.getElementById('download-json').addEventListener('click', function() {
+        const data = {{ report_data | tojson }};
+        download('raport.json', JSON.stringify(data, null, 4));
+    });
+
+    // Obsługa przycisku drukowania PDF
+    document.getElementById('print-pdf').addEventListener('click', function() {
+        window.print();
+    });
+</script>
+{% endblock %}

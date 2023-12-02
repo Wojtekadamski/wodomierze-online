@@ -2,6 +2,7 @@ import csv
 import os
 
 import chardet as chardet
+from dateutil.relativedelta import relativedelta
 from sqlalchemy.exc import NoResultFound
 from src.models import db, Meter, MeterReading, UserValidationLink, Event, Address
 from functools import wraps
@@ -21,6 +22,7 @@ def admin_required(func):
 
     return decorated_function
 
+
 def superuser_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -28,7 +30,9 @@ def superuser_required(f):
             flash('Brak uprawnień do tej strony.', 'danger')
             return redirect(url_for('main_routes.home'))
         return f(*args, **kwargs)
+
     return decorated_function
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() == 'csv'
@@ -42,8 +46,20 @@ def is_valid_link(user_link):
 
 
 def process_csv_water(file_path):
+    # Wykryj kodowanie pliku
+    with open(file_path, 'rb') as file:
+        result = chardet.detect(file.read())
+        file_encoding = result['encoding']
+
+    # Przekonwertuj plik do UTF-8, jeśli nie jest już w tym formacie
+    if file_encoding != 'utf-8':
+        with open(file_path, 'r', encoding=file_encoding) as file, \
+                open(file_path + '_utf8.csv', 'w', encoding='utf-8') as new_file:
+            new_file.write(file.read())
+        file_path = file_path + '_utf8.csv'
+
     try:
-        with open(file_path, 'r') as file:
+        with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()
 
         if ';' in content:
@@ -116,10 +132,9 @@ def process_csv_water(file_path):
                             reading = MeterReading(date=date, reading=reading_value, meter_id=meter.id)
                             db.session.add(reading)
 
-
                     if not meter.address:
                         address = Address(street=street_value, building_number=building_value,
-                                              apartment_number=apartment_value)
+                                          apartment_number=apartment_value)
                         meter.address = address
                         db.session.add(address)
                         db.session.commit()
@@ -149,27 +164,35 @@ def get_or_create_meter(session, radio_number):
 
 
 def process_csv_heat(file_path):
+    # Sprawdzenie kodowania pliku
+    with open(file_path, 'rb') as file:
+        result = chardet.detect(file.read())
+        file_encoding = result['encoding']
+
     try:
-        with open(file_path, 'r') as file:
+        if file_encoding != 'utf-8':
+            # Konwersja pliku do UTF-8, jeśli to konieczne
+            with open(file_path, 'r', encoding=file_encoding) as file, \
+                    open(file_path + '_utf8.csv', 'w', encoding='utf-8') as new_file:
+                new_file.write(file.read())
+            file_path_utf8 = file_path + '_utf8.csv'
+        else:
+            file_path_utf8 = file_path
+
+        with open(file_path_utf8, 'r') as file:
             content = file.read()
 
         if ';' in content:
-            # Jeżeli średniki są w zawartości pliku, zamień przecinki na kropki i średniki na przecinki
-            content = content.replace(',', '.')
-            content = content.replace(';', ',')
-
-            # Zapisz przekształconą zawartość do pliku tymczasowego
-            temp_file_path = os.path.splitext(file_path)[0] + '_temp.csv'
+            # Zamiana separatorów
+            content = content.replace(',', '.').replace(';', ',')
+            temp_file_path = os.path.splitext(file_path_utf8)[0] + '_temp.csv'
             with open(temp_file_path, 'w', encoding='utf-8') as temp_file:
                 temp_file.write(content)
-
-            # Odczytaj przekształcony plik CSV
             df = pd.read_csv(temp_file_path, sep=',', encoding='utf-8')
         else:
-            # Jeżeli średniki nie występują, załóż, że plik jest już poprawnym plikiem CSV
-            df = pd.read_csv(file_path, sep=',', encoding='utf-8')
+            df = pd.read_csv(file_path_utf8, sep=',', encoding='utf-8')
+
     except pd.errors.ParserError as e:
-        # Handle the error, e.g., by skipping lines with incorrect field counts
         print(f"Error parsing CSV: {e}")
         return "Problem w odczytaniu pliku CSV. Upewniej się, że format pliku jest prawidłowy."
 
@@ -184,16 +207,16 @@ def process_csv_heat(file_path):
                     db.session.add(meter)
                     db.session.commit()
 
-                # Przypisz adres tylko jeśli masz odpowiednie dane
                 street_value, building_value, apartment_value = None, None, None
 
                 for column in df.columns:
-                    if "Budynek" in row:
+                    if "Budynek" in column:
                         building_value = row.get(column)
-                    if "Klatka" in row:
+                    if "Klatka" in column:
                         street_value = row.get(column)
-                    if "Lokal" in row:
+                    if "Lokal" in column:
                         apartment_value = row.get(column)
+
                     if "Energia [GJ]" in column:
                         date_str = row.get("Data odczytu")
                         if date_str:
@@ -262,3 +285,43 @@ def process_csv_events(file_path, type):
         db.session.add(event)
 
     db.session.commit()
+
+
+from datetime import datetime, timedelta
+
+
+def create_report_data(selected_meters, report_period):
+    end_date = datetime.now()
+    start_date = end_date - relativedelta(months=report_period)
+    print(start_date, end_date)
+    report_data = []
+    for meter_radio_number in selected_meters:
+        meter = Meter.query.filter_by(radio_number=meter_radio_number).first()
+        if meter:
+            readings = MeterReading.query.filter(
+                MeterReading.meter_id == meter.id,
+                MeterReading.date >= start_date,
+
+                MeterReading.date <= end_date
+            ).all()
+            print(meter.readings)
+
+            if not readings:
+                report_data.append({
+                    'user_email': meter.user.email if meter.user else 'N/A',
+                    'meter_number': meter.radio_number,
+                    'meter_type': meter.type,
+                    'reading': 'Brak odczytów',
+                    'reading_date': 'N/A'
+                })
+            else:
+                for reading in readings:
+                    report_data.append({
+                        'user_email': meter.user.email if meter.user else 'N/A',
+                        'meter_number': meter.radio_number,
+                        'meter_type': meter.type,
+                        'reading': reading.reading,
+                        'reading_date': reading.date.strftime('%Y-%m-%d')
+                    })
+
+    return report_data
