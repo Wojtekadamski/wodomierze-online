@@ -29,3 +29,4 @@ typing_extensions==4.8.0
 tzdata==2023.3
 Werkzeug==2.3.6
 WTForms==3.0.1
+pyodbc==5.0.1

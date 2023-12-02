@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Generowanie Raportu</h2>
+    <div class="search-container" >
+    <input type="text" id="search-input" placeholder="Szukaj (email lub nr radiowy)" class="search-bar">
+</div>
+<form action="{{ url_for('main_routes.generate_report') }}" method="post">
+    <div class="user-list-r">
+        {% for user in users %}
+        <div class="user-entry">
+            <div class="user-header">
+                <span class="toggle-meters">&#9660;</span>
+                <input type="checkbox" class="user-checkbox" data-user-id="{{ user.id }}" id="user_{{ user.id }}">
+                <label for="user_{{ user.id }}">{{ user.email }}</label>
+            </div>
+            <div class="meter-list" style="display: none;">
+                {% for meter in user.meters %}
+                <div class="meter-entry">
+                    <input type="checkbox" class="meter-checkbox" name="selected_meters" value="{{ meter.radio_number }}" data-user-id="{{ user.id }}" id="meter_{{ meter.radio_number }}">
+                    <label for="meter_{{ meter.radio_number }}">{{ meter.radio_number }}</label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <select name="report_period">
+        <option value="1">1 miesiąc</option>
+        <option value="2">2 miesiące</option>
+        <option value="3">3 miesiące</option>
+        <option value="4">4 miesiące</option>
+        <option value="6">6 miesięcy</option>
+        <option value="12">12 miesięcy</option>
+    </select>
+
+    <input type="submit" value="Generuj Raport">
+</form>
+
+<script>
+    document.querySelectorAll('.user-header').forEach(function(header) {
+        header.addEventListener('click', function() {
+            var meterList = this.nextElementSibling;
+            meterList.style.display = meterList.style.display === 'none' ? 'block' : 'none';
+            this.querySelector('.toggle-meters').textContent = meterList.style.display === 'none' ? '▼' : '▲';
+        });
+    });
+
+    document.querySelectorAll('.user-checkbox').forEach(function(userCheckbox) {
+        userCheckbox.addEventListener('change', function() {
+            document.querySelectorAll('.meter-checkbox[data-user-id="' + this.dataset.userId + '"]').forEach(function(meterCheckbox) {
+                meterCheckbox.checked = userCheckbox.checked;
+            });
+        });
+    });
+</script>
+
+
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const userEntries = document.querySelectorAll('.user-entry');
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = searchInput.value.toLowerCase();
+
+        userEntries.forEach(function(entry) {
+            const userEmail = entry.querySelector('.user-header label').textContent.toLowerCase();
+            const meterNumbers = Array.from(entry.querySelectorAll('.meter-entry label')).map(label => label.textContent.toLowerCase());
+
+            const isUserMatch = userEmail.includes(searchTerm);
+            const isMeterMatch = meterNumbers.some(number => number.includes(searchTerm));
+
+            if (isUserMatch || isMeterMatch) {
+                entry.style.display = '';
+            } else {
+                entry.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+
+
+{% endblock %}

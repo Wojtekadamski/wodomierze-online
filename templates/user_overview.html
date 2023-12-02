@@ -7,8 +7,14 @@
     <!-- Informacje o użytkowniku -->
     <div class="user-info">
         <h4>Email: {{ user.email }}</h4>
+    {% if user.superuser %}
+        <h6>Przypisany do:  <a href="{{ url_for('main_routes.user_overview', user_id=user.superuser.id) }}">{{ user.superuser.email }}</a></h6>
+    {% endif %}
     {% if is_superuser %}
         <h4 style="color: #681919;">Superuser</h4>
+    {% endif %}
+    {% if is_admin %}
+        <h4 style="color: #177a6d;">Administrator</h4>
     {% endif %}
         <h5>Notatki o użytkowniku</h5>
     <div id="notes-display-field">
@@ -105,13 +111,13 @@
 
     {% if is_superuser %}
         <h4>Wolni użytkownicy:</h4>
-    <ul>
+    <ul class="user-list">
         {% for unassigned_user in unassigned_users %}
-            <li>
-                {{ unassigned_user.email }}
-                <form method="POST" action="{{ url_for('main_routes.assign_user_to_superuser', superuser_id=user.id, user_id=unassigned_user.id) }}">
+            <li class="user-item">
+                {{ unassigned_user.email }}<form method="POST" action="{{ url_for('main_routes.assign_user_to_superuser', superuser_id=user.id, user_id=unassigned_user.id) }}">
                     <button type="submit" class="btn btn-primary">Przypisz do Superusera</button>
                 </form>
+
             </li>
         {% endfor %}
     </ul>

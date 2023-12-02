@@ -112,7 +112,31 @@ h1,h2,h3,h4,h5,h6{
 	width: 100px;
 }
 
-/*-------------------------------------------------------------------------------*/
+/*--------------------------------free users -------------------------------------*/
+
+
+.free-user-list {
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.free-user-item {
+    padding: 5px;
+    border-bottom: 1px solid #eee;
+}
+
+.free-user-item:last-child {
+    border-bottom: none;
+}
+
+
+
+/*---------------------------*/
 
 .button {
     background: none;
@@ -274,3 +298,103 @@ h1,h2,h3,h4,h5,h6{
 
     /* You can add more specific styles for other elements as needed */
 }
+
+
+/*----------------------------------generowanie raportu---------------------*/
+
+
+.user-list-r {
+    margin-top: 20px;
+    max-width: 400px;
+    max-height: 600px; /* Możesz dostosować tę wartość do swoich potrzeb */
+    overflow-y: auto; /* Umożliwia przewijanie pionowe, gdy zawartość przekracza maksymalną wysokość */
+    border: 1px solid #ccc; /* Opcjonalnie, dla lepszej widoczności */
+    padding: 10px;
+    border-radius: 5px; /* Zaokrąglenie rogów */
+    background-color: #f9f9f9; /* Tło listy */
+}
+
+.user-entry {
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.user-header {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    background-color: white;
+    padding: 5px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+.user-header .toggle-meters {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.meter-list {
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.meter-entry {
+    margin-bottom: 5px;
+    background-color: white;
+    padding: 5px;
+    border-radius: 8px;
+}
+
+
+/*-------------------------RAPORT---------------------*/
+.report-table-container {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .report-table th, .report-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    .report-table th {
+        background-color: #f2f2f2;
+    }
+
+    .odd-row {
+        background-color: #f9f9f9;
+    }
+
+    .even-row {
+        background-color: #fff;
+    }
+
+    .report-actions {
+        margin-bottom: 20px;
+    }
+
+    .report-actions button {
+        margin-right: 10px;
+        padding: 5px 15px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .report-actions button:hover {
+        background-color: #45a049;
+    }

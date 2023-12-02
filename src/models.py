@@ -93,7 +93,7 @@ class MeterReading(db.Model):
     meter_id = db.Column(db.Integer, db.ForeignKey('meter.id'))
 
     def __repr__(self):
-        return f"Meter(id={self.id}, radio_number='{self.radio_number}', type='{self.type}', user_id={self.user_id}, name='{self.name}')"
+        return f"Meter(id={self.id}, radio_number='{self.meter_id.radio_number}', type='{self.type}', user_id={self.user_id}, name='{self.name}')"
 
     def get_reading_for_month(self, month):
         return self.query.filter(db.extract('month', MeterReading.date) == month).first().reading

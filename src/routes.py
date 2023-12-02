@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from flask import render_template, flash, redirect, url_for, Blueprint, request, jsonify, Response, send_file
+from dateutil.relativedelta import relativedelta
+from flask import render_template, flash, redirect, url_for, Blueprint, request, jsonify, Response, send_file, session
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from src.config import UPLOAD_FOLDER, EMAIL_KEY
@@ -9,7 +10,7 @@ from src.forms import LoginForm, RegistrationForm, MeterForm, MeterReadingForm, 
 from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events, \
-    superuser_required
+    superuser_required, create_report_data
 from cryptography.fernet import Fernet
 
 cipher = Fernet(EMAIL_KEY)
@@ -122,6 +123,8 @@ def upload_csv():
             process_csv_events(file_path, 'heat')
 
         flash('Plik CSV przesłany pomyślnie.')
+        if os.path.exists(file_path):
+            os.remove(file_path)
         return redirect(url_for('main_routes.home'))
 
     return render_template('upload_csv.html', form=form)
@@ -271,6 +274,7 @@ def add_user():
 def user_overview(user_id):
     user = User.query.get(user_id)
     is_superuser = user.is_superuser
+    is_admin = user.is_admin
     available_meters = Meter.query.filter_by(user_id=None).all()
     unassigned_meters = Meter.query.filter_by(user=None).all()
     assigned_users = []
@@ -278,7 +282,7 @@ def user_overview(user_id):
     assigned_meters = []
     if is_superuser:
         assigned_users = User.query.filter(User.superuser_id == user_id).all()
-        unassigned_users = User.query.filter(User.superuser_id == None).all()
+        unassigned_users = User.query.filter(User.superuser_id.is_(None), User.is_admin.is_(False), User.is_superuser.is_(False)).all()
         assigned_meters = Meter.query.filter_by(superuser_id=user_id).all()
 
     user_form = UserForm()
@@ -309,6 +313,7 @@ def user_overview(user_id):
         users=users,
         meters=meters,
         is_superuser=is_superuser,
+        is_admin=is_admin,
         assigned_users=assigned_users,
         unassigned_users=unassigned_users,
         assigned_meters=assigned_meters,
@@ -696,3 +701,29 @@ def remove_assigned_user(user_id):
         flash('Brak uprawnień do usunięcia przypisania tego użytkownika.', 'danger')
 
     return redirect(url_for('main_routes.user_overview', user_id=current_user.id))
+
+@main_routes.route('/generate_report', methods=['GET', 'POST'])
+@superuser_required
+def generate_report():
+    if request.method == 'POST':
+        selected_meters = request.form.getlist('selected_meters')
+        report_period = int(request.form.get('report_period'))
+
+
+        report_data = create_report_data(selected_meters, report_period)
+        session['report_data'] = report_data  # Zapisz dane do sesji
+
+        return redirect(url_for('main_routes.display_report'))
+
+    if current_user.is_admin:
+        users = User.query.all()
+    else:
+        users = User.query.filter_by(superuser_id=current_user.id).all()
+    return render_template('generate_report.html', users=users)
+
+@main_routes.route('/display_report')
+@superuser_required
+def display_report():
+    report_data = session.get('report_data', [])  # Pobierz dane z sesji
+    return render_template('display_report.html', report_data=report_data)
+
