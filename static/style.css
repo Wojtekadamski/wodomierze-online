@@ -299,7 +299,34 @@ h1,h2,h3,h4,h5,h6{
     /* You can add more specific styles for other elements as needed */
 }
 
+@media (min-width: 992px) {
+    #userListCollapse,
+    #meterListCollapse {
+        display: block !important;
+    }
+}
 
+.toggle-button {
+    background-color: rgba(255, 255, 255, 0.1); /* Przezroczyste białe tło */
+    color: white;
+    border: 1px solid black;
+    width: 300%;
+    text-align: left;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    padding: 10px;
+     background-color: rgba(255, 255, 255, 0.8);
+}
+
+
+
+.toggle-icon {
+    float: right;
+}
+
+.collapse.show + .toggle-button .toggle-icon {
+    transform: rotate(180deg); /* Obrót strzałki gdy sekcja jest rozwinięta */
+}
 /*----------------------------------generowanie raportu---------------------*/
 
 

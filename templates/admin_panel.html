@@ -12,7 +12,11 @@
         <button id="hideUserForm" class="btn btn-secondary" style="display: none">Schowaj formularz</button>
     </div>
     <!-- Widok użytkowników -->
-    <h3>Lista użytkowników</h3>
+<button class="btn btn-link d-block d-lg-none toggle-button" type="button" data-toggle="collapse" data-target="#userListCollapse" aria-expanded="false" aria-controls="userListCollapse">
+    <h3>Lista użytkowników <span class="toggle-icon">&#9660;</span></h3>
+    </button>
+    <h3 class="d-none d-lg-block">Lista użytkowników</h3>
+    <div class="collapse" id="userListCollapse">
   <input type="text" id="search-user-input" placeholder="Adres email" class="search-bar">
 <ul class="user-list limited-list" style="width: 320px" id="user-list">
     {% for user in users %}
@@ -21,8 +25,16 @@
         </li>
     {% endfor %}
 </ul>
+    </div>
 
-    <h3>Lista liczników</h3>
+
+<button class="btn btn-link d-block d-lg-none toggle-button" type="button" data-toggle="collapse" data-target="#meterListCollapse" aria-expanded="false" aria-controls="meterListCollapse">
+
+    <h3>Lista liczników <span class="toggle-icon">&#9660;</span></h3>
+</button>
+    <h3 class="d-none d-lg-block">Lista użytkowników</h3>
+    <div class="collapse" id="meterListCollapse">
+
     <input type="text" id="search-meter-input" placeholder="Numer radiowy" style="width: 150px">
     <ul class="user-list limited-list" style="width: 150px" id="meter-list">
         {% for meter in meters %}
@@ -31,6 +43,7 @@
             </li>
         {% endfor %}
     </ul>
+    </div>
 <form method="POST" action="{{ url_for('main_routes.delete_meters') }}">
     <button type="submit" class="btn btn-danger">Usuń wszystkie mierniki i odczyty</button>
 </form>
@@ -125,6 +138,19 @@
             }
         });
     });
+
+
+    document.querySelectorAll('.toggle-button').forEach(function(button) {
+    button.addEventListener('click', function() {
+        var icon = this.querySelector('.toggle-icon');
+        if (icon.textContent === '\u25BC') { // Strzałka w dół
+            icon.textContent = '\u25B2'; // Zmień na strzałkę w górę
+        } else {
+            icon.textContent = '\u25BC'; // Zmień na strzałkę w dół
+        }
+    });
+});
+
 </script>
 
 {% endblock %}
