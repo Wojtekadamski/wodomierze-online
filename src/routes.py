@@ -402,8 +402,8 @@ def assign_meter(user_id, meter_id):
 @admin_required
 def delete_meters():
     try:
-        Meter.query.delete()
         MeterReading.query.delete()
+        Meter.query.delete()
         Address.query.delete()
         db.session.commit()
         flash('Wszystkie mierniki i odczyty zostały usunięte.', 'success')
