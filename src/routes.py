@@ -282,7 +282,7 @@ def user_overview(user_id):
     assigned_meters = []
     if is_superuser:
         assigned_users = User.query.filter(User.superuser_id == user_id).all()
-        unassigned_users = User.query.filter(User.superuser_id.is_(None), User.is_admin.is_(False), User.is_superuser.is_(False)).all()
+        unassigned_users = User.query.filter(User.superuser_id==None, User.is_admin==False, User.is_superuser ==False).all()
         assigned_meters = Meter.query.filter_by(superuser_id=user_id).all()
 
     user_form = UserForm()
