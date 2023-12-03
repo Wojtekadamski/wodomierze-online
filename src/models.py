@@ -6,8 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, LoginManager
 from sqlalchemy.orm import backref
 from werkzeug.security import generate_password_hash, check_password_hash
-from src.config import SQL_ADMIN_CREDENCIALS as passes
-from src.config import SQL_USER_CREDENTIALS as usercreds
+
 
 login_manager = LoginManager()
 
@@ -144,18 +143,3 @@ def get_all_users():
         user_list.append(user_dict)
     return user_list
 
-
-def create_admin():
-    admin = User.query.filter_by(is_admin=True).first()
-
-    if admin is None:
-        admin = User(password_hash=generate_password_hash(passes[1]), email=passes[0],is_admin=True,)
-        db.session.add(admin)
-        db.session.commit()
-def create_user_test():
-    user = User.query.filter_by(email='user@gmail.com').first()
-
-    if user is None:
-        user = User( password_hash=generate_password_hash(usercreds[1]), email=usercreds[0],is_admin=False)
-        db.session.add(user)
-        db.session.commit()

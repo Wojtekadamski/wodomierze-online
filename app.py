@@ -5,7 +5,7 @@ from werkzeug.exceptions import InternalServerError, NotFound, Forbidden, Unauth
 from src.config import Config
 from src.error_handlers import handle_internal_server_error, handle_not_found_error, handle_forbidden_error, \
     handle_unauthorized_error
-from src.models import db,  login_manager,create_admin, create_user_test
+from src.models import db,  login_manager
 from src.routes import main_routes
 
 
@@ -15,8 +15,6 @@ migrate = Migrate(app, db)
 db.init_app(app)
 with app.app_context():
     db.create_all()
-    create_admin()
-    create_user_test()
     # create_app()
 app.register_blueprint(main_routes, url_prefix='/')
 login_manager.init_app(app)
