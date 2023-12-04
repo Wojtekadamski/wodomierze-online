@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>Panel Superużytkownika</h2>
+    <h2>Panel Administratora zasobów</h2>
     <div class="content-box">
         <div class="left-box" style="width: 25%">
-            <h3>Lista użytkowników</h3>
-            <input type="text" id="search-user-input" placeholder="Adres email" class="search-bar">
+            <h3>Lista Twoich zasobów</h3>
+            <input type="text" id="search-user-input" placeholder="Wyszukaj użytkownika" class="search-bar">
             <ul class="user-list limited-list" style="width: 320px" id="user-list">
                 {% for user in users %}
                     <li class="user-item">

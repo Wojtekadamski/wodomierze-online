@@ -2,11 +2,9 @@
 
 {% block user %}
 
-    <h2>Przegląd użytkownika</h2>
-
     <!-- Informacje o użytkowniku -->
     <div class="user-info">
-        <h4>Email: {{ user.email }}</h4>
+        <h4>Użytkownik: {{ user.email }}</h4>
     {% if user.superuser %}
         <h6>Przypisany do:  <a href="{{ url_for('main_routes.user_overview', user_id=user.superuser.id) }}">{{ user.superuser.email }}</a></h6>
     {% endif %}

@@ -16,8 +16,8 @@
     <h3>Lista użytkowników <span class="toggle-icon">&#9660;</span></h3>
     </button>
     <h3 class="d-none d-lg-block">Lista użytkowników</h3>
-    <div class="collapse" id="userListCollapse">
-  <input type="text" id="search-user-input" placeholder="Adres email" class="search-bar">
+    <div class="collapse"  id="userListCollapse">
+  <input type="text" id="search-user-input" style="width: 320px" placeholder="Wyszukaj użytkownika" class="search-bar">
 <ul class="user-list limited-list" style="width: 320px" id="user-list">
     {% for user in users %}
         <li class="user-item">
@@ -32,11 +32,11 @@
 
     <h3>Lista liczników <span class="toggle-icon">&#9660;</span></h3>
 </button>
-    <h3 class="d-none d-lg-block">Lista użytkowników</h3>
+    <h3 class="d-none d-lg-block">Lista liczników</h3>
     <div class="collapse" id="meterListCollapse">
 
-    <input type="text" id="search-meter-input" placeholder="Numer radiowy" style="width: 150px">
-    <ul class="user-list limited-list" style="width: 150px" id="meter-list">
+    <input type="text" id="search-meter-input" style="width: 320px" placeholder="Wyszukaj według numeru radiowego" >
+    <ul class="user-list limited-list" style="width: 320px"  id="meter-list">
         {% for meter in meters %}
             <li class="meter-item">
                 <a href="{{ url_for('main_routes.meter_details', meter_id=meter.id) }}"> {{ meter.radio_number }}</a>
