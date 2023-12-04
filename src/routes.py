@@ -724,7 +724,7 @@ def generate_report():
     return render_template('generate_report.html', users=users)
 
 
-locale.setlocale(locale.LC_TIME, 'pl_PL')
+#locale.setlocale(locale.LC_TIME, 'pl_PL')
 @main_routes.route('/display_report')
 @superuser_required
 def display_report():

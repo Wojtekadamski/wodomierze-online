@@ -30,3 +30,5 @@ tzdata==2023.3
 Werkzeug==2.3.6
 WTForms==3.0.1
 pyodbc==5.0.1
+datetime==5.3
+zope.interface==6.1

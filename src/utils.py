@@ -373,5 +373,4 @@ def create_report_data(selected_meters, report_period):
 
             report_data.append(meter_data)
 
-
     return report_data
