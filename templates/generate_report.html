@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
+    <a href="{{ url_for('main_routes.home') }} " class="btn btn-secondary no-print">Powrót</a>
+
 <h2>Generowanie Raportu</h2>
     <div class="search-container" >
     <input type="text" id="search-input" placeholder="Szukaj (email lub nr radiowy)" class="search-bar">

@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
+    <button class="btn btn-secondary no-print" onclick="goBack()">Powrót</button>
+    <script>function goBack() {
+            window.history.back();
+        }
+    </script>
 <div class="print-header">
-    <img src="{{ url_for('static', filename='img/Zdalny_Odczyt_RGB.png') }}" alt="Logo" class="logo">
+    <img src="{{ url_for('static', filename='img/Zdalny_Odczyt_RGB.png') }}" alt="Logo" class="logo report-logo">
     <h2>Raport za okres: {{ report_start_date }} do {{ report_end_date }}</h2>
     <p>Użytkownicy w raporcie: {{ unique_emails | join(', ') }}</p>
 </div>
