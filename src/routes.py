@@ -734,7 +734,37 @@ def display_report():
     report_end_date = datetime.now()
     report_start_date = report_end_date - relativedelta(months=report_period)
     unique_emails = set(data['user_email'] for data in report_data)
-    return render_template('display_report.html', report_data=report_data, report_period=report_period,
+
+    english_to_polish_months = {
+        'January': 'Styczeń',
+        'February': 'Luty',
+        'March': 'Marzec',
+        'April': 'Kwiecień',
+        'May': 'Maj',
+        'June': 'Czerwiec',
+        'July': 'Lipiec',
+        'August': 'Sierpień',
+        'September': 'Wrzesień',
+        'October': 'Październik',
+        'November': 'Listopad',
+        'December': 'Grudzień'
+    }
+    for data_entry in report_data:
+        for month in range(report_period):
+            month_name = (end_date - relativedelta(months=month)).strftime('%B %Y')
+            month_name_split = month_name.split()
+            polish_month_name = english_to_polish_months.get(month_name_split[0], month_name_split[0]) + ' ' + \
+                                month_name_split[1]
+            if month_name in data_entry:
+                data_entry[polish_month_name] = data_entry.pop(month_name)
+
+    translated_month_names = [(end_date - relativedelta(months=month)).strftime('%B %Y') for month in
+                              range(report_period)]
+    translated_month_names = [english_to_polish_months.get(month.split()[0], month.split()[0]) + ' ' + month.split()[1]
+                              for month in translated_month_names]
+
+    print(report_data)
+    return render_template('display_report.html', report_data=report_data,translated_month_names=translated_month_names, report_period=report_period,
                            end_date=end_date, relativedelta=relativedelta,report_start_date=report_start_date.strftime('%Y-%m-%d'), report_end_date=report_end_date.strftime('%Y-%m-%d'), unique_emails=unique_emails)
 
 

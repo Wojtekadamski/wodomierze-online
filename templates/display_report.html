@@ -25,8 +25,8 @@
         <th>Nr Radiowy</th>
         <th>Typ Licznika</th>
         <!-- Nagłówki dla miesięcy -->
-        {% for month in range(report_period) %}
-        <th>{{ (end_date - relativedelta(months=month)).strftime('%B %Y') }}</th>
+        {% for month_name in translated_month_names %}
+        <th>{{ month_name }}</th>
         {% endfor %}
     </tr>
     {% for data in report_data %}
@@ -36,8 +36,8 @@
         <td>{{ data.meter_number }}</td>
         <td>{{ data.meter_type }}</td>
         <!-- Dane dla każdego miesiąca -->
-        {% for month in range(report_period) %}
-        <td>{{ data[(end_date - relativedelta(months=month)).strftime('%B %Y')] }}</td>
+        {% for month_name in translated_month_names %}
+        <td>{{ data[month_name] }}</td>
         {% endfor %}
     </tr>
     {% endfor %}
