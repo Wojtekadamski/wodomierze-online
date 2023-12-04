@@ -1,3 +1,4 @@
+import locale
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
@@ -713,7 +714,7 @@ def generate_report():
 
         report_data = create_report_data(selected_meters, report_period)
         session['report_data'] = report_data  # Zapisz dane do sesji
-
+        session['report_period'] = report_period
         return redirect(url_for('main_routes.display_report'))
 
     if current_user.is_admin:
@@ -722,9 +723,19 @@ def generate_report():
         users = User.query.filter_by(superuser_id=current_user.id).all()
     return render_template('generate_report.html', users=users)
 
+
+locale.setlocale(locale.LC_TIME, 'pl_PL')
 @main_routes.route('/display_report')
 @superuser_required
 def display_report():
-    report_data = session.get('report_data', [])  # Pobierz dane z sesji
-    return render_template('display_report.html', report_data=report_data)
+    report_data = session.get('report_data', [])
+    report_period = session.get('report_period', 0)
+    end_date = datetime.now().replace(day=1) - relativedelta(days=1)
+    report_end_date = datetime.now()
+    report_start_date = report_end_date - relativedelta(months=report_period)
+    unique_emails = set(data['user_email'] for data in report_data)
+    return render_template('display_report.html', report_data=report_data, report_period=report_period,
+                           end_date=end_date, relativedelta=relativedelta,report_start_date=report_start_date.strftime('%Y-%m-%d'), report_end_date=report_end_date.strftime('%Y-%m-%d'), unique_emails=unique_emails)
+
+
 

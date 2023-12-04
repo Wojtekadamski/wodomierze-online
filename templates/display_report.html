@@ -1,81 +1,139 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Raport</h2>
+<div class="print-header">
+    <img src="{{ url_for('static', filename='img/Zdalny_Odczyt_RGB.png') }}" alt="Logo" class="logo">
+    <h2>Raport za okres: {{ report_start_date }} do {{ report_end_date }}</h2>
+    <p>Użytkownicy w raporcie: {{ unique_emails | join(', ') }}</p>
+</div>
     <div class="report-actions no-print">
     <button id="download-csv">Pobierz CSV</button>
     <button id="download-json">Pobierz JSON</button>
     <button id="print-pdf">Drukuj PDF</button>
+
 </div>
-<div class="report-table-container">
-    <table class="report-table">
-        <tr>
-            <th>Email Użytkownika</th>
-            <th>Nr Radiowy</th>
-            <th>Typ Licznika</th>
-            <th>Pomiary</th>
-            <th>Data Odczytu</th>
-        </tr>
-        {% for data in report_data %}
-        <tr class="{{ loop.cycle('odd-row', 'even-row') }}">
-            <td>{{ data.user_email }}</td>
-            <td>{{ data.meter_number }}</td>
-            <td>{{ data.meter_type }}</td>
-            <td>{{ data.reading }}</td>
-            <td>{{ data.reading_date }}</td>
-        </tr>
+
+<div class="table-responsive report-table-container">
+<table class="report-table">
+    <tr>
+        <th>Email Użytkownika</th>
+        <th>Adres Licznika</th>
+        <th>Nr Radiowy</th>
+        <th>Typ Licznika</th>
+        <!-- Nagłówki dla miesięcy -->
+        {% for month in range(report_period) %}
+        <th>{{ (end_date - relativedelta(months=month)).strftime('%B %Y') }}</th>
         {% endfor %}
-    </table>
+    </tr>
+    {% for data in report_data %}
+    <tr class="{{ loop.cycle('odd-row', 'even-row') }}">
+        <td>{{ data.user_email }}</td>
+        <td>{{ data.meter_address }}</td>
+        <td>{{ data.meter_number }}</td>
+        <td>{{ data.meter_type }}</td>
+        <!-- Dane dla każdego miesiąca -->
+        {% for month in range(report_period) %}
+        <td>{{ data[(end_date - relativedelta(months=month)).strftime('%B %Y')] }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+</table>
 </div>
+
 
 
  <script>
     // Funkcja do konwersji danych na format CSV
-    function convertToCSV(data) {
-        const csvRows = [];
-        const headers = Object.keys(data[0]);
-        csvRows.push(headers.join(','));
+    function exportTableToCSV() {
+    const table = document.querySelector('.report-table'); // Znajdź tabelę po klasie
+    let csvContent = '';
 
-        for (const row of data) {
-            const values = headers.map(header => {
-                const escaped = ('' + row[header]).replace(/"/g, '\\"');
-                return `"${escaped}"`;
-            });
-            csvRows.push(values.join(','));
+    // Przejście przez wiersze tabeli i zbieranie danych
+    for (let row of table.rows) {
+        let rowData = [];
+        for (let cell of row.cells) {
+            // Usuń znaki nowej linii i otocz każdą wartość cudzysłowami
+            let cellText = '"' + cell.innerText.replace(/(\r\n|\n|\r)/gm, "") + '"';
+            rowData.push(cellText);
         }
-
-        return csvRows.join('\n');
+        csvContent += rowData.join(',') + '\r\n'; // Dołącz dane wiersza do zawartości CSV
     }
 
-    // Funkcja do pobierania danych jako pliku
-    function download(filename, text) {
-        const element = document.createElement('a');
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-        element.setAttribute('download', filename);
+    // Utwórz unikalną nazwę pliku z datą
+    const date = new Date();
+    const dateString = date.toISOString().split('T')[0];
+    const fileName = `raport_${dateString}.csv`;
 
-        element.style.display = 'none';
-        document.body.appendChild(element);
+    // Utwórz link do pobrania pliku CSV
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.style.display = 'none';
 
-        element.click();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 
-        document.body.removeChild(element);
+// Przypisz funkcję do przycisku eksportu
+const exportButton = document.getElementById('download-csv');
+exportButton.addEventListener('click', exportTableToCSV);
+
+   function printReport() {
+    const date = new Date();
+    const dateString = date.toISOString().split('T')[0];
+    const suggestedFileName = `raport_${dateString}.pdf`;
+
+    alert(`Sugerowana nazwa pliku: ${suggestedFileName}`);
+
+    window.print();
+}
+
+// Przypisz funkcję do przycisku drukowania
+const printButton = document.getElementById('print-pdf');
+printButton.addEventListener('click', printReport);
+
+
+
+function exportTableToJSON() {
+    const table = document.querySelector('.report-table'); // Znajdź tabelę po klasie
+    let jsonData = [];
+
+    // Pobierz nagłówki tabeli
+    const headers = [];
+    for (let headerCell of table.rows[0].cells) {
+        headers.push(headerCell.innerText);
     }
 
-    // Obsługa przycisku pobierania CSV
-    document.getElementById('download-csv').addEventListener('click', function() {
-        const data = {{ report_data | tojson }};
-        const csvData = convertToCSV(data);
-        download('raport.csv', csvData);
-    });
+    // Przejście przez wiersze tabeli i zbieranie danych
+    for (let i = 1; i < table.rows.length; i++) {
+        let row = table.rows[i];
+        let rowData = {};
+        for (let j = 0; j < row.cells.length; j++) {
+            rowData[headers[j]] = row.cells[j].innerText;
+        }
+        jsonData.push(rowData);
+    }
 
-    // Obsługa przycisku pobierania JSON
-    document.getElementById('download-json').addEventListener('click', function() {
-        const data = {{ report_data | tojson }};
-        download('raport.json', JSON.stringify(data, null, 4));
-    });
+    // Utwórz unikalną nazwę pliku z datą
+    const date = new Date();
+    const dateString = date.toISOString().split('T')[0];
+    const fileName = `raport_${dateString}.json`;
 
-    // Obsługa przycisku drukowania PDF
-    document.getElementById('print-pdf').addEventListener('click', function() {
-        window.print();
-    });
+    // Utwórz link do pobrania pliku JSON
+    const blob = new Blob([JSON.stringify(jsonData, null, 4)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.style.display = 'none';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Przypisz funkcję do przycisku eksportu
+const exportJSONButton = document.getElementById('download-json');
+exportJSONButton.addEventListener('click', exportTableToJSON);
 </script>
 {% endblock %}

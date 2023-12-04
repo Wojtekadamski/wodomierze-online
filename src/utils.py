@@ -100,6 +100,7 @@ def process_csv_water(file_path):
     for index, row in df.iterrows():
         try:
             radio_number = int(row.get('Nr radiowy'))
+            print(int(row.get('Nr radiowy')))
             if not pd.isna(radio_number):
                 meter = Meter.query.filter_by(radio_number=radio_number).first()
 
@@ -120,6 +121,7 @@ def process_csv_water(file_path):
 
                     if "Objętość [m3]" in column:
                         month_and_year = column.split()[-2:]  # Ostatnie dwa elementy: "czerwiec 2020"
+
                         month_str, year_str = month_and_year
 
                         month_num = month_mapping.get(month_str.lower())
@@ -290,38 +292,86 @@ def process_csv_events(file_path, type):
 from datetime import datetime, timedelta
 
 
+# def create_report_data(selected_meters, report_period):
+#     end_date = datetime.now()
+#     start_date = end_date - relativedelta(months=report_period)
+#     print(start_date, end_date)
+#     report_data = []
+#     for meter_radio_number in selected_meters:
+#         meter = Meter.query.filter_by(radio_number=meter_radio_number).first()
+#         if meter:
+#             readings = MeterReading.query.filter(
+#                 MeterReading.meter_id == meter.id,
+#                 MeterReading.date >= start_date,
+#
+#                 MeterReading.date <= end_date
+#             ).all()
+#             print(meter.readings)
+#
+#             if not readings:
+#                 report_data.append({
+#                     'user_email': meter.user.email if meter.user else 'N/A',
+#                     'meter_number': meter.radio_number,
+#                     'meter_type': meter.type,
+#                     'reading': 'Brak odczytów',
+#                     'reading_date': 'N/A'
+#                 })
+#             else:
+#                 for reading in readings:
+#                     report_data.append({
+#                         'user_email': meter.user.email if meter.user else 'N/A',
+#                         'meter_number': meter.radio_number,
+#                         'meter_type': meter.type,
+#                         'reading': reading.reading,
+#                         'reading_date': reading.date.strftime('%Y-%m-%d')
+#                     })
+#
+#     return report_data
+
+
 def create_report_data(selected_meters, report_period):
-    end_date = datetime.now()
+    end_date = datetime.now().replace(day=1) - relativedelta(days=1)
     start_date = end_date - relativedelta(months=report_period)
-    print(start_date, end_date)
+
     report_data = []
     for meter_radio_number in selected_meters:
         meter = Meter.query.filter_by(radio_number=meter_radio_number).first()
         if meter:
-            readings = MeterReading.query.filter(
-                MeterReading.meter_id == meter.id,
-                MeterReading.date >= start_date,
-
-                MeterReading.date <= end_date
-            ).all()
-            print(meter.readings)
-
-            if not readings:
-                report_data.append({
-                    'user_email': meter.user.email if meter.user else 'N/A',
-                    'meter_number': meter.radio_number,
-                    'meter_type': meter.type,
-                    'reading': 'Brak odczytów',
-                    'reading_date': 'N/A'
-                })
+            # Tworzenie reprezentacji adresu jako ciągu znaków
+            if meter.address:
+                address_parts = [
+                    meter.address.street,
+                    meter.address.building_number,
+                    meter.address.apartment_number
+                ]
+                address_str = ', '.join(filter(None, address_parts))
             else:
-                for reading in readings:
-                    report_data.append({
-                        'user_email': meter.user.email if meter.user else 'N/A',
-                        'meter_number': meter.radio_number,
-                        'meter_type': meter.type,
-                        'reading': reading.reading,
-                        'reading_date': reading.date.strftime('%Y-%m-%d')
-                    })
+                address_str = 'N/A'
+
+            meter_data = {
+                'user_email': meter.user.email if meter.user else 'N/A',
+                'meter_number': meter.radio_number,
+                'meter_type': meter.type,
+                'meter_address': address_str,  # Użyj utworzonego ciągu adresu
+            }
+
+            # Dodajemy kolumny dla każdego miesiąca
+            for month in range(report_period):
+                month_date = end_date - relativedelta(months=month)
+                month_name = month_date.strftime('%B %Y')
+                meter_data[month_name] = 'Brak odczytów'
+
+                # Znajdź odczyt dla danego miesiąca
+                reading = MeterReading.query.filter(
+                    MeterReading.meter_id == meter.id,
+                    MeterReading.date >= month_date - relativedelta(months=1),
+                    MeterReading.date < month_date
+                ).order_by(MeterReading.date.desc()).first()  # Pobierz najnowszy odczyt w miesiącu
+
+                if reading:
+                    meter_data[month_name] = reading.reading
+
+            report_data.append(meter_data)
+
 
     return report_data

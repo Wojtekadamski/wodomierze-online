@@ -1,15 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
     <h1>Logowanie</h1>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <ul>
-                {% for message in messages %}
-                    <li>{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
     <div class="right-box">
     <form method="POST" action="{{ url_for('main_routes.login') }}" style="max-width: 300px">
   {{ form.hidden_tag() }}
