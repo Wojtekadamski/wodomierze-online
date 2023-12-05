@@ -13,6 +13,20 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 </head>
+<script>
+function adjustMargin() {
+    var navbarHeight = document.querySelector('.navbar').offsetHeight;
+    var centerBox = document.querySelector('.center-box');
+    centerBox.style.marginTop = navbarHeight + 'px';
+}
+
+// Wywołaj funkcję przy ładowaniu strony
+window.onload = adjustMargin;
+
+// Wywołaj funkcję przy zmianie rozmiaru okna
+window.onresize = adjustMargin;
+</script>
+
 <body>
 
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">

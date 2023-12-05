@@ -183,8 +183,14 @@ h1,h2,h3,h4,h5,h6{
    position: fixed;
    top: 0px;
    width: 100%;
-	height: 7%;
+	overflow: hidden;
 }
+
+.navbar .btn {
+    margin: 5px; /* Dodaje margines dookoła przycisków */
+    white-space: nowrap; /* Zapobiega łamaniu tekstu w przyciskach */
+}
+
 .content-box{
 	display: flex;
 }
