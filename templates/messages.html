@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+    <a href="{{ url_for('main_routes.home') }} " class="btn btn-secondary no-print">Powrót</a>
   <h1>Wiadomości</h1>
   <div class="row">
     {% if current_user.is_admin %}
