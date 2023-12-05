@@ -48,11 +48,20 @@
 
  <script>
     // Funkcja do konwersji danych na format CSV
-    function exportTableToCSV() {
-    const table = document.querySelector('.report-table');
-    let csvContent = '\uFEFF'; // Dodaj BOM na początku pliku
+    function exportTableToCSVWithDialog() {
+    const userChoice = confirm("Czy chcesz pobrać plik CSV z polskimi znakami? Kliknij 'Anuluj' dla trybu zgodności (bez polskich znaków).");
 
-    // Przejście przez wiersze tabeli i zbieranie danych
+    if (userChoice) {
+        exportTableToCSVWithPolishChars();
+    } else {
+        exportTableToCSVWithCompatibilityMode();
+    }
+}
+
+function exportTableToCSVWithPolishChars() {
+    const table = document.querySelector('.report-table');
+    let csvContent = '';
+
     for (let row of table.rows) {
         let rowData = [];
         for (let cell of row.cells) {
@@ -61,13 +70,41 @@
         }
         csvContent += rowData.join(',') + '\r\n';
     }
-
     // Utwórz unikalną nazwę pliku z datą
     const date = new Date();
     const dateString = date.toISOString().split('T')[0];
     const fileName = `raport_${dateString}.csv`;
 
-    // Utwórz link do pobrania pliku CSV
+    downloadCSV(csvContent, fileName);
+}
+
+function exportTableToCSVWithCompatibilityMode() {
+    const table = document.querySelector('.report-table');
+    let csvContent = '';
+
+    for (let row of table.rows) {
+        let rowData = [];
+        for (let cell of row.cells) {
+            let cellText = replacePolishChars(cell.innerText);
+            cellText = '"' + cellText.replace(/(\r\n|\n|\r)/gm, "") + '"';
+            rowData.push(cellText);
+        }
+        csvContent += rowData.join(',') + '\r\n';
+    }
+    // Utwórz unikalną nazwę pliku z datą
+    const date = new Date();
+    const dateString = date.toISOString().split('T')[0];
+    const fileName = `raport_${dateString}.csv`;
+
+    downloadCSV(csvContent, fileName);
+}
+
+function replacePolishChars(text) {
+    const polishChars = { 'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n', 'ó': 'o', 'ś': 's', 'ż': 'z', 'ź': 'z' };
+    return text.replace(/[ąćęłńóśżź]/g, match => polishChars[match]);
+}
+
+function downloadCSV(csvContent, fileName) {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -79,10 +116,9 @@
     document.body.removeChild(link);
 }
 
-
-// Przypisz funkcję do przycisku eksportu
+// Przypisz nową funkcję do przycisku eksportu
 const exportButton = document.getElementById('download-csv');
-exportButton.addEventListener('click', exportTableToCSV);
+exportButton.addEventListener('click', exportTableToCSVWithDialog);
 
    function printReport() {
     const date = new Date();

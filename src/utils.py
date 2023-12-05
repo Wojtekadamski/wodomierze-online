@@ -364,7 +364,7 @@ def create_report_data(selected_meters, report_period):
             for month in range(report_period):
                 month_date = end_date - relativedelta(months=month)
                 month_name = month_date.strftime('%B %Y')
-                meter_data[month_name] = 'Brak odczytów'
+                meter_data[month_name] = ''
 
                 # Znajdź odczyt dla danego miesiąca
                 reading = MeterReading.query.filter(
