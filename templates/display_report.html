@@ -49,18 +49,17 @@
  <script>
     // Funkcja do konwersji danych na format CSV
     function exportTableToCSV() {
-    const table = document.querySelector('.report-table'); // Znajdź tabelę po klasie
-    let csvContent = '';
+    const table = document.querySelector('.report-table');
+    let csvContent = '\uFEFF'; // Dodaj BOM na początku pliku
 
     // Przejście przez wiersze tabeli i zbieranie danych
     for (let row of table.rows) {
         let rowData = [];
         for (let cell of row.cells) {
-            // Usuń znaki nowej linii i otocz każdą wartość cudzysłowami
             let cellText = '"' + cell.innerText.replace(/(\r\n|\n|\r)/gm, "") + '"';
             rowData.push(cellText);
         }
-        csvContent += rowData.join(',') + '\r\n'; // Dołącz dane wiersza do zawartości CSV
+        csvContent += rowData.join(',') + '\r\n';
     }
 
     // Utwórz unikalną nazwę pliku z datą
@@ -79,6 +78,7 @@
     link.click();
     document.body.removeChild(link);
 }
+
 
 // Przypisz funkcję do przycisku eksportu
 const exportButton = document.getElementById('download-csv');
