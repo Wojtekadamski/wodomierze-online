@@ -10,6 +10,8 @@
     <div>
         <button id="showUserForm" class="btn btn-primary">Pokaż formularz</button>
         <button id="hideUserForm" class="btn btn-secondary" style="display: none">Schowaj formularz</button>
+        <button id="showMultipleUsersForm" class="btn btn-primary">Dodaj wielu użytkowników</button>
+        <button id="hideMultipleUsersForm" class="btn btn-secondary" style="display: none">Schowaj formularz</button>
     </div>
     <!-- Widok użytkowników -->
 <button class="btn btn-link d-block d-lg-none toggle-button" type="button" data-toggle="collapse" data-target="#userListCollapse" aria-expanded="false" aria-controls="userListCollapse">
@@ -76,6 +78,12 @@
     <button type="submit" class="btn btn-primary">Dodaj</button>
 </form>
 
+<form id="multipleUsersForm" method="POST" action="{{ url_for('main_routes.add_multiple_users') }}" style="display: none; max-width: 400px">
+    <h3>Dodaj wielu użytkowników</h3>
+    <textarea name="emails" class="form-control" rows="5" placeholder="Wprowadź adresy e-mail oddzielone spacjami, enterami, przecinkami lub średnikami"></textarea>
+    <button type="submit" class="btn btn-primary">Dodaj</button>
+</form>
+
     {% block user %}
 
     {% endblock user %}
@@ -104,9 +112,18 @@
     </script>
 
    <script>
+
+   document.getElementById("showMultipleUsersForm").addEventListener("click", function () {
+    document.getElementById("multipleUsersForm").style.display = "block";
+    this.style.display = "none";
+});
+
         const showUserFormBtn = document.getElementById("showUserForm");
         const hideUserFormBtn = document.getElementById("hideUserForm");
         const userForm = document.getElementById("userForm");
+        const  showMultipleUsersFormBtn =document.getElementById("showMultipleUsersForm");
+        const  hideMultipleUsersFormBtn =document.getElementById("hideMultipleUsersForm");
+        const multipleUsersForm = document.getElementById("multipleUsersForm")
 
         showUserFormBtn.addEventListener("click", function () {
             userForm.style.display = "block";
@@ -118,6 +135,18 @@
             userForm.style.display = "none";
             this.style.display = "none";
             showUserFormBtn.style.display = "block";
+        });
+
+        showMultipleUsersFormBtn.addEventListener("click", function () {
+            multipleUsersForm.style.display = "block";
+            this.style.display = "none";
+            hideMultipleUsersFormBtn.style.display = "block";
+});
+
+        hideMultipleUsersFormBtn.addEventListener("click", function () {
+            multipleUsersForm.style.display = "none";
+            this.style.display = "none";
+            showMultipleUsersFormBtn.style.display = "block";
         });
     </script>
 

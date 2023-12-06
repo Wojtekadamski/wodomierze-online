@@ -1,4 +1,4 @@
-import locale
+import random
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
@@ -12,9 +12,7 @@ from src.models import User, db, Meter, MeterReading, get_all_users, Message, Ad
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events, \
     superuser_required, create_report_data
-from cryptography.fernet import Fernet
 
-cipher = Fernet(EMAIL_KEY)
 main_routes = Blueprint('main_routes', __name__)
 
 
@@ -724,7 +722,7 @@ def generate_report():
     return render_template('generate_report.html', users=users)
 
 
-#locale.setlocale(locale.LC_TIME, 'pl_PL')
+
 @main_routes.route('/display_report')
 @superuser_required
 def display_report():
@@ -769,3 +767,23 @@ def display_report():
 
 
 
+
+@main_routes.route('/add_multiple_users', methods=['POST'])
+@admin_required
+def add_multiple_users():
+    emails = request.form.get('emails').split()
+    user_data = []
+
+    for email in emails:
+        password = generate_random_password()
+        user = User(email=email)
+        user.set_password(password)
+        db.session.add(user)
+        user_data.append({'email': email, 'password': password})
+
+    db.session.commit()
+    return render_template('user_summary.html', users=user_data)
+
+def generate_random_password():
+    chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    return ''.join(random.choice(chars) for _ in range(8))
