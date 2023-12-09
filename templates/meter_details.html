@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ButtonsAndForms.css')}}">
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='MediaQueries.css')}}">
+
+{% endblock extra_css %}
+
 {% block content %}
 
 <button class="btn btn-secondary no-print" onclick="goBack()">Powrót</button>
@@ -44,7 +50,7 @@
     <button type="submit" class="btn btn-primary">Aktualizuj</button>
 </form>
 <button id="edit-button" class="btn btn-primary">Zmień nazwę</button>
-    </p>
+
 {% endif %}
 <p>Typ: {% if meter.type == "water" %}wodomierz{% elif meter.type == "heat" %}ciepłomierz{% endif %}</p>
     {% if current_user.is_admin %}

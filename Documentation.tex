@@ -1,0 +1,1762 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{polski}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{placeins}
+\usepackage{verbatim}
+\usepackage[hidelinks]{hyperref}
+\usepackage{graphics}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{listings}
+\usepackage[utf8]{inputenc}
+\usepackage{fancyhdr}
+\usepackage{blindtext}
+\usepackage{comment}
+\usepackage{lscape}
+\usepackage{hyperref}
+\usepackage{bera}% optional: just to have a nice mono-spaced font
+\usepackage{listings}
+\usepackage{xcolor}
+\newcommand{\mycomment}[1]{}
+\pagenumbering{arabic}
+%source grfiki
+\graphicspath{ {./} }
+\pagestyle{fancy}
+\fancyhf{}
+\cfoot{\thepage}
+\lhead{Wodomierze Online - Smartbits}
+\begin{document}
+
+\title{Dokumentacja projektu: Wodomierze Online}
+\author{Wojciech adamski dla Smartbits Sp. z o.o.}
+\date{09 grudnia 2023}
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{Zdalny_Odczyt_RGB.png}
+
+    \label{fig:enter-label}
+\end{figure}
+\maketitle
+\tableofcontents
+\newpage
+\chapter{Wprowadzenie}
+\section{Wprowadzenie}
+Projekt "Wodomierze Online" to aplikacja webowa służąca do zarządzania i monitorowania odczytów wodomierzy. Aplikacja umożliwia użytkownikom przeglądanie, dodawanie i eksportowanie danych odczytów, a także zarządzanie użytkownikami i licznikami.
+
+\section{Założenia projektowe}
+\begin{itemize}
+    \item Zarządzanie odczytami wodomierzy.
+    \item Możliwość dodawania i edytowania danych użytkowników i liczników.
+    \item Eksport danych do różnych formatów (CSV, PDF).
+    \item Interfejs użytkownika dostosowany do różnych typów urządzeń.
+\end{itemize}
+
+\section{Użyte biblioteki i technologie}
+\begin{itemize}
+    \item Flask - mikroframework do tworzenia aplikacji webowych w Pythonie.
+    \item SQLAlchemy - narzędzie ORM do obsługi baz danych.
+    \item Jinja2 - silnik szablonów dla Pythona.
+    \item Bootstrap - framework CSS do tworzenia responsywnych interfejsów użytkownika.
+    \item Plotly - biblioteka do tworzenia interaktywnych wykresów.
+\end{itemize}
+
+\section{Struktura plików}
+Projekt składa się z następujących plików i folderów:
+
+\begin{itemize}
+    \item \hyperref[sec:app]{\texttt{app.py}} - Główny plik aplikacji, zawierający konfigurację i uruchomienie serwera.
+    \item \texttt{README.md} - Plik z opisem projektu.
+    \item \texttt{requirements.txt} - Lista zależności projektu.
+
+    \item \textbf{migrations/} - Folder zawierający migracje bazy danych.
+    \begin{itemize}
+        \item \texttt{ alembic.ini} - Konfiguracja Alembic.
+        \item \texttt{ env.py} - Środowisko migracji.
+        \item \texttt{ README} - Opis migracji.
+        \item \texttt{ script.py.mako} - Szablon skryptu migracji.
+        \item \textbf{ versions/} - Folder z wersjami migracji.
+    \end{itemize}
+
+    \item \textbf{src/} - Folder z kodem źródłowym aplikacji.
+    \begin{itemize}
+        \item \hyperref[sec:config]{ \texttt{config.py}} - Konfiguracja aplikacji.
+        \item \hyperref[sec:error_handlers]{\texttt{error\_handlers.py}} - Obsługa błędów.
+        \item \hyperref[sec:forms]{ \texttt{forms.py}} - Formularze Flask-WTF.
+        \item \hyperref[sec:models]{ \texttt{models.py}} - Modele bazy danych.
+        \item \hyperref[sec:routes]{ \texttt{routes.py}} - Definicje tras aplikacji.
+        \item \hyperref[sec:tests]{ \texttt{tests.py}} - Testy jednostkowe.
+        \item \hyperref[sec:utils]{ \texttt{utils.py}} - Funkcje pomocnicze.
+    \end{itemize}
+
+    \item \textbf{static/} - Folder z plikami statycznymi.
+    \begin{itemize}
+        \item \texttt{ style.css} - Arkusz stylów CSS.
+        \item \textbf{ img/} - Obrazy używane w aplikacji.
+        \item \textbf{ js/} - Skrypty JavaScript.
+    \end{itemize}
+
+    \item \hyperref[sec:templates]{\texttt{Szablony}} - Folder z szablonami Jinja2.
+    \begin{itemize}
+        \item \texttt{ add\_meter.html}, \texttt{add\_reading.html}, \texttt{add\_user.html}, \texttt{admin\_panel.html}, \texttt{assign\_meter.html}, \texttt{base.html}, \texttt{display\_report.html}, \texttt{edit\_account.html}, \texttt{generate\_report.html}, \texttt{home.html}, \texttt{login.html}, \texttt{message.html}, \texttt{messages.html}, \texttt{meter\_details.html}, \texttt{meter\_details\_beta.html}, \texttt{register.html}, \texttt{send\_message.html}, \texttt{summary.html}, \texttt{superuser\_panel.html}, \texttt{superuser\_user\_overview.html}, \texttt{upload\_csv.html}, \texttt{user\_meters.html}, \texttt{user\_overview.html}, \texttt{user\_summary.html}.
+    \end{itemize}
+\end{itemize}
+\section{Model UML aplikacji}
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{models.png}
+    \caption{Modele aplikacji}
+    \label{fig:enter-label}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{models2.png}
+    \caption{Zależności}
+    \label{fig:enter-label}
+\end{figure}
+
+\newpage
+%poniżej treść
+\chapter{Pliki}
+\section{config.py}
+\label{sec:config}
+
+Plik \texttt{config.py} zawiera konfigurację aplikacji Flask. Jest to kluczowy plik, który definiuje różne ustawienia i parametry niezbędne do prawidłowego działania aplikacji.
+
+\subsection{Opis zawartości}
+\begin{itemize}
+    \item \texttt{ALLOWED\_EXTENSIONS} - Zbiór rozszerzeń plików, które są dozwolone do przesyłania na serwer. W tym przypadku dozwolone są pliki \texttt{csv} i \texttt{json}.
+
+    \item \texttt{UPLOAD\_FOLDER} - Nazwa folderu, do którego będą przesyłane pliki. W tym przypadku jest to folder \texttt{'uploads'}.
+
+    \item \texttt{EMAIL\_KEY} - Klucz wykorzystywany do weryfikacji adresów email. Jest to klucz w formacie bajtowym.
+
+    \item \textbf{Klasa Config} - Główna klasa konfiguracyjna zawierająca ustawienia aplikacji.
+    \begin{itemize}
+        \item \texttt{SECRET\_KEY} - Tajny klucz aplikacji, wykorzystywany do zabezpieczania danych aplikacji, takich jak sesje. Pobierany jest ze zmiennej środowiskowej.
+
+        \item \texttt{DB\_USER}, \texttt{DB\_PASS}, \texttt{DB\_SERVER}, \texttt{DB\_NAME} - Parametry konfiguracyjne bazy danych, w tym nazwa użytkownika, hasło, serwer i nazwa bazy danych. Są one pobierane ze zmiennych środowiskowych, z opcjonalnymi wartościami domyślnymi dla \texttt{DB\_SERVER} i \texttt{DB\_NAME}.
+
+        \item \texttt{SQLALCHEMY\_DATABASE\_URI} - URI bazy danych wykorzystywane przez SQLAlchemy do połączenia z bazą danych. Jest to skonstruowany ciąg połączenia z bazą danych SQL Server, wykorzystujący wcześniej zdefiniowane parametry.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Uwagi}
+\begin{itemize}
+    \item Plik ten jest kluczowy dla bezpieczeństwa i konfiguracji aplikacji. Należy zachować ostrożność, aby nie ujawnić wrażliwych danych, takich jak \texttt{SECRET\_KEY} czy dane dostępu do bazy danych.
+
+    \item Zmienne środowiskowe są preferowanym sposobem przechowywania wrażliwych danych, szczególnie w środowisku produkcyjnym.
+
+    \item Plik ten powinien być dostosowany do specyficznych wymagań i ustawień środowiska, w którym działa aplikacja.
+\end{itemize}
+
+\section{error\_handlers.py}
+\label{sec:error_handlers}
+
+Plik \texttt{error\_handlers.py} zawiera funkcje obsługi błędów dla aplikacji Flask. Te funkcje są wykorzystywane do obsługi typowych błędów HTTP, takich jak 404 (nie znaleziono), 500 (błąd wewnętrzny serwera), 403 (dostęp zabroniony) i 401 (brak autoryzacji).
+
+\subsection{Opis zawartości}
+\begin{itemize}
+    \item \textbf{handle\_internal\_server\_error(e)} - Funkcja obsługi błędu 500. Wyświetla komunikat o błędzie i przekierowuje użytkownika na stronę główną.
+
+    \item \textbf{handle\_not\_found\_error(e)} - Funkcja obsługi błędu 404. Informuje użytkownika, że strona nie została znaleziona i przekierowuje na stronę główną.
+
+    \item \textbf{handle\_forbidden\_error(e)} - Funkcja obsługi błędu 403. Informuje użytkownika o braku dostępu do żądanej strony i przekierowuje na stronę główną.
+
+    \item \textbf{handle\_unauthorized\_error(e)} - Funkcja obsługi błędu 401. Informuje użytkownika o braku autoryzacji do dostępu do żądanej strony i przekierowuje na stronę główną.
+\end{itemize}
+
+\subsection{Uwagi}
+\begin{itemize}
+    \item Funkcje te są wykorzystywane do obsługi typowych błędów HTTP w sposób przyjazny dla użytkownika, zapewniając jednocześnie, że użytkownik jest przekierowywany na bezpieczną stronę (stronę główną).
+
+    \item Każda funkcja obsługi błędów przyjmuje jako argument obiekt błędu (e), który może być wykorzystany do uzyskania dodatkowych informacji o błędzie.
+
+    \item Użycie funkcji \texttt{flash} pozwala na wyświetlenie komunikatu o błędzie na stronie głównej, co jest pomocne w informowaniu użytkownika o napotkanym problemie.
+
+    \item Warto rozważyć rozszerzenie obsługi błędów o dodatkowe informacje diagnostyczne lub logowanie, co może być pomocne w rozwiązywaniu problemów.
+\end{itemize}
+
+
+\section{forms.py}
+\label{sec:forms}
+
+Plik \texttt{forms.py} zawiera definicje klas formularzy używanych w aplikacji Flask. Te formularze są wykorzystywane do interakcji z użytkownikiem, takich jak logowanie, rejestracja, dodawanie i edycja danych.
+
+\subsection{Klasy Formularzy}
+\begin{itemize}
+    \item \textbf{LoginForm} - Formularz logowania użytkownika. Zawiera pola dla adresu email, hasła oraz opcji zapamiętania użytkownika.
+
+    \item \textbf{MeterForm} - Formularz dodawania nowego licznika. Zawiera pola dla numeru radiowego, typu licznika oraz identyfikatora użytkownika.
+
+    \item \textbf{UploadForm} - Formularz do przesyłania plików CSV. Obsługuje różne typy plików (wodomierze, ciepłomierze, zdarzenia dla wodomierzy i ciepłomierzy).
+
+    \item \textbf{UserForm} - Formularz do dodawania nowego użytkownika. Zawiera pola dla adresu email, hasła, potwierdzenia hasła oraz opcji administratora i superużytkownika.
+
+    \item \textbf{EditAccountForm} - Formularz do zmiany hasła użytkownika. Zawiera pola dla obecnego hasła, nowego hasła oraz potwierdzenia nowego hasła.
+
+    \item \textbf{AddUserForm} - Formularz do dodawania nowego użytkownika z potwierdzeniem adresu email.
+
+    \item \textbf{SetPasswordForm} - Formularz do ustawienia nowego hasła z potwierdzeniem.
+
+    \item \textbf{UserNotesForm} - Formularz do dodawania notatek do profilu użytkownika.
+
+    \item \textbf{UserOverviewForm} - Formularz do wyświetlania notatek w przeglądzie użytkownika.
+
+    \item \textbf{MessageForm} - Formularz do wysyłania wiadomości. Zawiera pola dla tematu, treści, odbiorcy oraz opcji wysłania do wszystkich użytkowników.
+
+    \item \textbf{AssignMeterToSuperuserForm} - Formularz do przypisywania licznika do superużytkownika.
+
+    \item \textbf{AssignMeterToUserForm} - Formularz do przypisywania licznika do użytkownika.
+\end{itemize}
+
+\subsection{Uwagi}
+\begin{itemize}
+    \item Formularze wykorzystują bibliotekę \texttt{Flask-WTF} oraz \texttt{WTForms} do tworzenia i walidacji pól formularza.
+
+    \item Walidatory, takie jak \texttt{DataRequired}, \texttt{Email}, \texttt{EqualTo}, zapewniają podstawową walidację danych wejściowych.
+
+    \item W niektórych formularzach, takich jak \texttt{AssignMeterToSuperuserForm} i \texttt{AssignMeterToUserForm}, dynamicznie generowane są opcje wyboru na podstawie danych z bazy danych.
+
+    \item Formularze są integralną częścią interfejsu użytkownika, umożliwiając łatwą i bezpieczną interakcję z aplikacją.
+\end{itemize}
+
+\section{models.py}
+\label{sec:models}
+
+Plik \texttt{models.py} zawiera definicje modeli danych używanych w aplikacji Flask. Modele te są mapowane na tabele w bazie danych i służą do reprezentacji różnych encji, takich jak użytkownicy, liczniki, odczyty liczników itp.
+
+\subsection{Model User}
+Model \texttt{User} reprezentuje użytkownika aplikacji. Zawiera następujące pola:
+\begin{itemize}
+    \item \textbf{id} - Unikalny identyfikator użytkownika (klucz główny).
+    \item \textbf{email} - Adres email użytkownika. Służy jako unikalny identyfikator użytkownika w systemie.
+    \item \textbf{password\_hash} - Zaszyfrowane hasło użytkownika.
+    \item \textbf{is\_admin} - Flaga określająca, czy użytkownik posiada uprawnienia administratora.
+    \item \textbf{is\_superuser} - Flaga określająca, czy użytkownik jest superużytkownikiem.
+    \item \textbf{meters} - Relacja z modelem \texttt{Meter}, reprezentująca liczniki przypisane do użytkownika.
+    \item \textbf{messages\_sent} - Relacja z modelem \texttt{Message}, reprezentująca wiadomości wysłane przez użytkownika.
+    \item \textbf{messages\_received} - Relacja z modelem \texttt{Message}, reprezentująca wiadomości otrzymane przez użytkownika.
+\end{itemize}
+
+\subsection{Model Meter}
+Model \texttt{Meter} reprezentuje licznik. Zawiera następujące pola:
+\begin{itemize}
+    \item \textbf{id} - Unikalny identyfikator licznika (klucz główny).
+    \item \textbf{radio\_number} - Numer radiowy licznika.
+    \item \textbf{type} - Typ licznika (np. wodomierz, ciepłomierz).
+    \item \textbf{user\_id} - Identyfikator użytkownika, do którego przypisany jest licznik.
+    \item \textbf{readings} - Relacja z modelem \texttt{MeterReading}, reprezentująca odczyty danego licznika.
+\end{itemize}
+
+\subsection{Model MeterReading}
+Model \texttt{MeterReading} reprezentuje odczyt licznika. Zawiera następujące pola:
+\begin{itemize}
+    \item \textbf{id} - Unikalny identyfikator odczytu (klucz główny).
+    \item \textbf{date} - Data odczytu.
+    \item \textbf{reading} - Wartość odczytu.
+    \item \textbf{meter\_id} - Identyfikator licznika, do którego należy dany odczyt.
+\end{itemize}
+
+\subsection{Model Message}
+Model \texttt{Message} reprezentuje wiadomość. Zawiera następujące pola:
+\begin{itemize}
+    \item \textbf{id} - Unikalny identyfikator wiadomości (klucz główny).
+    \item \textbf{subject} - Temat wiadomości.
+    \item \textbf{content} - Treść wiadomości.
+    \item \textbf{sender\_id} - Identyfikator nadawcy wiadomości.
+    \item \textbf{recipient\_id} - Identyfikator odbiorcy wiadomości.
+    \item \textbf{read} - Flaga określająca, czy wiadomość została przeczytana.
+\end{itemize}
+
+\subsection{Model Event}
+Model \texttt{Event} reprezentuje zdarzenie. Zawiera następujące pola:
+\begin{itemize}
+    \item \textbf{id} - Unikalny identyfikator zdarzenia (klucz główny).
+    \item \textbf{type} - Typ zdarzenia.
+    \item \textbf{date} - Data zdarzenia.
+    \item \textbf{meter\_id} - Identyfikator licznika, z którym związane jest zdarzenie.
+    \item \textbf{details} - Szczegółowe informacje o zdarzeniu.
+\end{itemize}
+
+\subsection{Uwagi}
+\begin{itemize}
+    \item Modele wykorzystują bibliotekę \texttt{SQLAlchemy} do mapowania obiektowo-relacyjnego (ORM).
+    \item W modelu \texttt{User} zaimplementowano metody do ustawiania i weryfikacji hasła, wykorzystując funkcje haszujące.
+    \item Modele zawierają również metody pomocnicze, takie jak generowanie tokenów dla resetowania hasła.
+    \item Modele są kluczowym elementem aplikacji, umożliwiającym efektywne zarządzanie danymi i interakcję z bazą danych.
+\end{itemize}
+
+\section{routes.py}
+\label{sec:routes}
+
+Plik \texttt{routes.py} zawiera definicje tras (endpointów) aplikacji Flask. Każda trasa jest powiązana z określoną funkcją, która obsługuje żądania HTTP do danego endpointu. Poniżej znajduje się szczegółowy opis każdej funkcji wraz z jej przeznaczeniem, parametrami, zwracanymi wartościami oraz odwołaniami do innych elementów aplikacji.
+
+\subsection{Spis funkcji}
+\begin{itemize}
+    \item \hyperref[sec:welcome]{\texttt{welcome()}}
+    \item \hyperref[sec:home]{\texttt{home()}}
+    \item \hyperref[sec:login]{\texttt{login()}}
+    \item \hyperref[sec:logout]{\texttt{logout()}}
+    \item \hyperref[sec:upload_csv]{\texttt{upload\_csv()}}
+    \item \hyperref[sec:user_meters]{\texttt{user\_meters()}}
+    \item \hyperref[sec:meter_details]{\texttt{meter\_details()}}
+    \item \hyperref[sec:delete_meter]{\texttt{delete\_meter()}}
+    \item \hyperref[sec:clear_readings]{\texttt{clear\_readings()}}
+    \item \hyperref[sec:update_meter_name]{\texttt{update\_meter\_name()}}
+    \item \hyperref[sec:update_meter_address]{\texttt{update\_meter\_address()}}
+    \item \hyperref[sec:admin_panel]{\texttt{admin\_panel()}}
+    \item \hyperref[sec:add_user]{\texttt{add\_user()}}
+    \item \hyperref[sec:user_overview]{\texttt{user\_overview()}}
+    \item \hyperref[sec:remove_meter]{\texttt{remove\_meter()}}
+    \item \hyperref[sec:add_meter]{\texttt{add\_meter()}}
+    \item \hyperref[sec:edit_account]{\texttt{edit\_account()}}
+    \item \hyperref[sec:assign_meter]{\texttt{assign\_meter()}}
+    \item \hyperref[sec:delete_meters]{\texttt{delete\_meters()}}
+    \item \hyperref[sec:delete_user]{\texttt{delete\_user()}}
+    \item \hyperref[sec:deactivate_user]{\texttt{deactivate\_user()}}
+    \item \hyperref[sec:update_user_notes]{\texttt{update\_user\_notes()}}
+    \item \hyperref[sec:messages]{\texttt{messages()}}
+    \item \hyperref[sec:message]{\texttt{message()}}
+    \item \hyperref[sec:delete_message]{\texttt{delete\_message()}}
+    \item \hyperref[sec:assign_meters_to_user]{\texttt{assign\_meters\_to\_user()}}
+    \item \hyperref[sec:summary]{\texttt{summary()}}
+    \item \hyperref[sec:assign_meter_to_superuser]{\texttt{assign\_meter\_to\_superuser()}}
+    \item \hyperref[sec:superuser_assign_meter]{\texttt{superuser\_assign\_meter()}}
+    \item \hyperref[sec:superuser_user_overview]{\texttt{superuser\_user\_overview()}}
+    \item \hyperref[sec:superuser_panel]{\texttt{superuser\_panel()}}
+    \item \hyperref[sec:assign_user_to_superuser]{\texttt{assign\_user\_to\_superuser()}}
+    \item \hyperref[sec:remove_assigned_user]{\texttt{remove\_assigned\_user()}}
+    \item \hyperref[sec:generate_report]{\texttt{generate\_report()}}
+    \item \hyperref[sec:display_report]{\texttt{display\_report()}}
+    \item \hyperref[sec:add_multiple_users]{\texttt{add\_multiple\_users()}}
+\end{itemize}
+
+\subsection{\texttt{welcome()}}
+\label{sec:welcome}
+Funkcja \texttt{welcome()} przekierowuje użytkownika do odpowiedniej strony w zależności od tego, czy jest zalogowany. Jeśli użytkownik jest zalogowany, przekierowuje do strony głównej (\texttt{home}). W przeciwnym razie przekierowuje do strony logowania (\texttt{login}).
+
+\textbf{Parametry:} Brak.
+
+\textbf{Zwracane wartości:} Przekierowanie do odpowiedniej strony.
+
+\textbf{Używane zmienne:} \texttt{current\_user} - obecnie zalogowany użytkownik.
+
+\textbf{Odwołania:} \texttt{url\_for} - funkcja Flask do generowania URL.
+
+% Dokumentacja pozostałych funkcji w podobnym stylu
+\subsection{\texttt{home()}}
+\label{sec:home}
+Funkcja \texttt{home()} służy do wyświetlania strony głównej aplikacji. W zależności od roli zalogowanego użytkownika, przekierowuje do odpowiedniego panelu (administratora lub superużytkownika) lub wyświetla stronę główną dla zwykłego użytkownika.
+
+\textbf{Parametry:} Brak.
+
+\textbf{Zwracane wartości:} Renderowany szablon \texttt{home.html} dla zwykłego użytkownika lub przekierowanie do panelu administratora/superużytkownika.
+
+\textbf{Używane zmienne:} \texttt{current\_user} - obecnie zalogowany użytkownik.
+
+\textbf{Odwołania:} \texttt{url\_for}, \texttt{redirect} - funkcje Flask do generowania URL i przekierowań.
+
+\subsection{\texttt{login()}}
+\label{sec:login}
+Funkcja \texttt{login()} obsługuje proces logowania użytkownika. Jeśli użytkownik jest już zalogowany, przekierowuje go do strony głównej. W przeciwnym razie, obsługuje formularz logowania i weryfikuje dane użytkownika.
+
+\textbf{Parametry:} Brak.
+
+\textbf{Zwracane wartości:} Renderowany szablon \texttt{login.html} lub przekierowanie do strony głównej po pomyślnym zalogowaniu.
+
+\textbf{Używane zmienne:} \texttt{LoginForm} - formularz logowania, \texttt{current\_user} - obecnie zalogowany użytkownik.
+
+\textbf{Odwołania:} \texttt{url\_for}, \texttt{redirect}, \texttt{flash} - funkcje Flask do generowania URL, przekierowań i wyświetlania komunikatów.
+
+\subsection{\texttt{logout()}}
+\label{sec:logout}
+Funkcja \texttt{logout()} służy do wylogowywania użytkownika. Po wylogowaniu przekierowuje użytkownika do strony głównej.
+
+\textbf{Parametry:} Brak.
+
+\textbf{Zwracane wartości:} Przekierowanie do strony głównej (\texttt{home}).
+
+\textbf{Używane zmienne:} Brak.
+
+\textbf{Odwołania:} \texttt{logout\_user}, \texttt{url\_for}, \texttt{redirect} - funkcje Flask do wylogowywania użytkownika i przekierowań.
+
+% Kontynuacja dokumentacji dla pozostałych funkcji w podobnym stylu
+\subsection{\texttt{upload\_csv()}}
+\label{sec:upload_csv}
+Funkcja \texttt{upload\_csv()} obsługuje przesyłanie plików CSV przez administratora. Umożliwia przesłanie danych dotyczących wodomierzy, ciepłomierzy oraz zdarzeń związanych z tymi urządzeniami.
+
+\textbf{Parametry:} Brak.
+
+\textbf{Zwracane wartości:} Renderowany szablon \texttt{upload\_csv.html} lub przekierowanie do strony głównej po pomyślnym przesłaniu pliku.
+
+\textbf{Używane zmienne:} \texttt{UploadForm} - formularz przesyłania plików, \texttt{UPLOAD\_FOLDER} - ścieżka do folderu z plikami.
+
+\textbf{Odwołania:} \texttt{url\_for}, \texttt{redirect}, \texttt{flash}, \texttt{process\_csv\_water}, \texttt{process\_csv\_heat}, \texttt{process\_csv\_events} - funkcje Flask do generowania URL, przekierowań, wyświetlania komunikatów i przetwarzania plików CSV.
+
+\subsection{\texttt{user\_meters()}}
+\label{sec:user_meters}
+Funkcja \texttt{user\_meters()} wyświetla listę liczników przypisanych do zalogowanego użytkownika.
+
+\textbf{Parametry:} Brak.
+
+\textbf{Zwracane wartości:} Renderowany szablon \texttt{user\_meters.html} z listą liczników.
+
+\textbf{Używane zmienne:} \texttt{current\_user} - obecnie zalogowany użytkownik.
+
+\textbf{Odwołania:} \texttt{Meter} - model licznika z bazy danych.
+
+\subsection{\texttt{meter\_details()}}
+\label{sec:meter_details}
+Funkcja \texttt{meter\_details()} wyświetla szczegółowe informacje o wybranym liczniku, w tym odczyty i zdarzenia związane z tym licznikiem. Dostęp do tej funkcji mają tylko właściciel licznika, administrator lub superużytkownik z odpowiednimi uprawnieniami.
+
+\textbf{Parametry:} \texttt{meter\_id} - identyfikator licznika.
+
+\textbf{Zwracane wartości:} Renderowany szablon \texttt{meter\_details.html} ze szczegółami licznika.
+
+\textbf{Używane zmienne:} \texttt{Meter}, \texttt{MeterReading}, \texttt{current\_user} - model licznika, model odczytów i obecnie zalogowany użytkownik.
+
+\textbf{Odwołania:} \texttt{url\_for}, \texttt{redirect}, \texttt{flash} - funkcje Flask do generowania URL, przekierowań i wyświetlania komunikatów.
+
+% Kontynuacja dokumentacji dla pozostałych funkcji w podobnym stylu
+\subsection{\texttt{delete\_meter()}}
+\label{sec:delete_meter}
+Funkcja \texttt{delete\_meter()} umożliwia administratorowi usunięcie wybranego licznika z bazy danych.
+
+\textbf{Parametry:} \texttt{meter\_id} - identyfikator licznika do usunięcia.
+
+\textbf{Zwracane wartości:} Przekierowanie do panelu administratora po usunięciu licznika.
+
+\textbf{Używane zmienne:} \texttt{Meter} - model licznika, \texttt{db} - instancja bazy danych.
+
+\textbf{Odwołania:} \texttt{url\_for}, \texttt{redirect}, \texttt{flash} - funkcje Flask do generowania URL, przekierowań i wyświetlania komunikatów.
+
+\subsection{\texttt{clear\_readings()}}
+\label{sec:clear_readings}
+Funkcja \texttt{clear\_readings()} służy do wyczyszczenia wszystkich odczytów dla wybranego licznika. Dostępna tylko dla administratora.
+
+\textbf{Parametry:} \texttt{meter\_id} - identyfikator licznika, którego odczyty mają zostać wyczyszczone.
+
+\textbf{Zwracane wartości:} Przekierowanie do szczegółów licznika po wyczyszczeniu odczytów.
+
+\textbf{Używane zmienne:} \texttt{Meter} - model licznika, \texttt{db} - instancja bazy danych.
+
+\textbf{Odwołania:} \texttt{url\_for}, \texttt{redirect}, \texttt{flash} - funkcje Flask do generowania URL, przekierowań i wyświetlania komunikatów.
+
+\subsection{\texttt{update\_meter\_name()}}
+\label{sec:update_meter_name}
+Funkcja \texttt{update\_meter\_name()} pozwala zalogowanemu użytkownikowi na zmianę nazwy przypisanego do niego licznika.
+
+\textbf{Parametry:} \texttt{meter\_id} - identyfikator licznika, którego nazwa ma zostać zmieniona.
+
+\textbf{Zwracane wartości:} Przekierowanie do szczegółów licznika po zmianie nazwy.
+
+\textbf{Używane zmienne:} \texttt{Meter} - model licznika, \texttt{current\_user} - obecnie zalogowany użytkownik, \texttt{db} - instancja bazy danych.
+
+\textbf{Odwołania:} \texttt{url\_for}, \texttt{redirect}, \texttt{flash}, \texttt{request.form} - funkcje Flask do generowania URL, przekierowań, wyświetlania komunikatów i obsługi danych formularza.
+
+\subsection{\texttt{update\_meter\_address()}}
+\label{sec:update_meter_address}
+Funkcja \texttt{update\_meter\_address()} umożliwia zalogowanemu użytkownikowi aktualizację adresu przypisanego do jego licznika.
+
+\textbf{Parametry:} \texttt{meter\_id} - identyfikator licznika, którego adres ma zostać zaktualizowany.
+
+\textbf{Zwracane wartości:} Przekierowanie do szczegółów licznika po aktualizacji adresu.
+
+\textbf{Używane zmienne:} \texttt{Meter} - model licznika, \texttt{Address} - model adresu, \texttt{db} - instancja bazy danych, \texttt{request.form} - dane formularza.
+
+\textbf{Odwołania:} \texttt{url\_for}, \texttt{redirect} - funkcje Flask do generowania URL i przekierowań.
+
+\subsection{\texttt{admin\_panel()}}
+\label{sec:admin_panel}
+Funkcja \texttt{admin\_panel()} wyświetla panel administratora, umożliwiając zarządzanie użytkownikami i licznikami.
+
+\textbf{Parametry:} Brak.
+
+\textbf{Zwracane wartości:} Renderowanie szablonu panelu administratora.
+
+\textbf{Używane zmienne:} \texttt{UserForm} - formularz użytkownika, \texttt{User} - model użytkownika, \texttt{Meter} - model licznika, \texttt{db} - instancja bazy danych.
+
+\textbf{Odwołania:} \texttt{render\_template}, \texttt{url\_for}, \texttt{redirect}, \texttt{flash} - funkcje Flask do renderowania szablonów, generowania URL, przekierowań i wyświetlania komunikatów.
+
+\subsection{\texttt{add\_user()}}
+\label{sec:add_user}
+Funkcja \texttt{add\_user()} umożliwia administratorowi dodanie nowego użytkownika do systemu.
+
+\textbf{Parametry:} Brak.
+
+\textbf{Zwracane wartości:} Przekierowanie do panelu administratora po dodaniu użytkownika.
+
+\textbf{Używane zmienne:} \texttt{UserForm} - formularz użytkownika, \texttt{User} - model użytkownika, \texttt{db} - instancja bazy danych.
+
+\textbf{Odwołania:} \texttt{render\_template}, \texttt{url\_for}, \texttt{redirect}, \texttt{flash} - funkcje Flask do renderowania szablonów, generowania URL, przekierowań i wyświetlania komunikatów.
+
+\subsection{\texttt{user\_overview()}}
+\label{sec:user_overview}
+Funkcja \texttt{user\_overview()} służy do wyświetlania szczegółów użytkownika w panelu administratora, w tym przypisywania mu liczników oraz zarządzania jego notatkami.
+
+\textbf{Parametry:} \texttt{user\_id} - identyfikator użytkownika, którego szczegóły mają zostać wyświetlone.
+
+\textbf{Zwracane wartości:} Renderowanie szablonu z widokiem szczegółów użytkownika.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkownika.
+    \item \texttt{Meter} - model licznika.
+    \item \texttt{UserForm} - formularz użytkownika.
+    \item \texttt{UserNotesForm} - formularz notatek użytkownika.
+    \item \texttt{db} - instancja bazy danych.
+    \item \texttt{request.form} - dane formularza.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{render\_template} - funkcja Flask do renderowania szablonów.
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja pobiera informacje o użytkowniku na podstawie \texttt{user\_id}. Następnie, w zależności od tego, czy użytkownik jest superużytkownikiem czy administratorem, pobiera listę dostępnych i nieprzypisanych liczników oraz użytkowników. Umożliwia przypisanie liczników do użytkownika oraz aktualizację jego notatek. W przypadku przypisania licznika, funkcja zapisuje zmiany w bazie danych i wyświetla stosowny komunikat.
+\subsection{\texttt{remove\_meter()}}
+\label{sec:remove_meter}
+Funkcja \texttt{remove\_meter()} służy do odłączania licznika od użytkownika.
+
+\textbf{Parametry:} \texttt{meter\_id} - identyfikator licznika do odłączenia.
+
+\textbf{Zwracane wartości:} Przekierowanie do widoku szczegółów superużytkownika lub użytkownika, w zależności od uprawnień bieżącego użytkownika.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{Meter} - model licznika.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja odłącza licznik od użytkownika, usuwając powiązania z użytkownikiem i superużytkownikiem. Następnie zapisuje zmiany w bazie danych i wyświetla stosowny komunikat. W przypadku braku uprawnień do odłączenia licznika, wyświetla komunikat o błędzie.
+
+\subsection{\texttt{add\_meter()}}
+\label{sec:add_meter}
+Funkcja \texttt{add\_meter()} służy do dodawania nowego licznika w panelu administratora.
+
+\textbf{Zwracane wartości:} Renderowanie formularza dodawania licznika lub przekierowanie do panelu administratora po pomyślnym dodaniu licznika.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{MeterForm} - formularz dodawania licznika.
+    \item \texttt{Meter} - model licznika.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{render\_template} - funkcja Flask do renderowania szablonów.
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja wyświetla formularz dodawania licznika. Po wypełnieniu formularza i jego zatwierdzeniu, dodaje nowy licznik do bazy danych i wyświetla komunikat o pomyślnym dodaniu.
+
+\subsection{\texttt{edit\_account()}}
+\label{sec:edit_account}
+Funkcja \texttt{edit\_account()} służy do zmiany hasła użytkownika.
+
+\textbf{Zwracane wartości:} Renderowanie formularza zmiany hasła lub przekierowanie do strony głównej po pomyślnej zmianie hasła.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{EditAccountForm} - formularz zmiany hasła.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{render\_template} - funkcja Flask do renderowania szablonów.
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja wyświetla formularz zmiany hasła. Po wypełnieniu formularza i jego zatwierdzeniu, zmienia hasło bieżącego użytkownika w bazie danych i wyświetla komunikat o pomyślnej zmianie hasła.
+
+\subsection{\texttt{assign\_meter()}}
+\label{sec:assign_meter}
+Funkcja \texttt{assign\_meter()} służy do przypisywania licznika do użytkownika.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{user\_id} - identyfikator użytkownika, do którego ma być przypisany licznik.
+    \item \texttt{meter\_id} - identyfikator licznika, który ma być przypisany.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Przekierowanie do widoku szczegółów superużytkownika lub użytkownika, w zależności od uprawnień bieżącego użytkownika.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkownika.
+    \item \texttt{Meter} - model licznika.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja przypisuje licznik do użytkownika, zapisując zmiany w bazie danych. W przypadku braku uprawnień do przypisania licznika, wyświetla komunikat o błędzie.
+
+\subsection{\texttt{delete\_meters()}}
+\label{sec:delete_meters}
+Funkcja \texttt{delete\_meters()} służy do usuwania wszystkich liczników i odczytów z bazy danych.
+
+\textbf{Zwracane wartości:} Przekierowanie do panelu administratora.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{MeterReading} - model odczytów licznika.
+    \item \texttt{Meter} - model licznika.
+    \item \texttt{Address} - model adresu.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja usuwa wszystkie liczniki, odczyty i adresy z bazy danych. W przypadku wystąpienia błędu, wycofuje zmiany i wyświetla komunikat o błędzie.
+
+\subsection{\texttt{delete\_user()}}
+\label{sec:delete_user}
+Funkcja \texttt{delete\_user()} służy do usuwania użytkownika z bazy danych.
+
+\textbf{Parametry:} \texttt{user\_id} - identyfikator użytkownika do usunięcia.
+
+\textbf{Zwracane wartości:} Przekierowanie do panelu administratora.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkownika.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja usuwa użytkownika z bazy danych po weryfikacji hasła administratora. W przypadku nieprawidłowego hasła, wyświetla komunikat o błędzie.
+
+\subsection{\texttt{deactivate\_user()}}
+\label{sec:deactivate_user}
+Funkcja \texttt{deactivate\_user()} służy do dezaktywacji lub aktywacji konta użytkownika.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{user\_id} - identyfikator użytkownika, którego konto ma zostać dezaktywowane lub aktywowane.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Przekierowanie do widoku szczegółów użytkownika.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkownika.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja zmienia status aktywności konta użytkownika. Jeśli konto jest aktywne, zostaje dezaktywowane, a jeśli jest dezaktywne, zostaje aktywowane. Następnie zapisuje zmiany w bazie danych i wyświetla odpowiedni komunikat.
+
+\subsection{\texttt{update\_user\_notes()}}
+\label{sec:update_user_notes}
+Funkcja \texttt{update\_user\_notes()} służy do aktualizacji notatek przypisanych do użytkownika.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{user\_id} - identyfikator użytkownika, którego notatki mają zostać zaktualizowane.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Przekierowanie do widoku szczegółów użytkownika.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkownika.
+    \item \texttt{UserNotesForm} - formularz do edycji notatek użytkownika.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja aktualizuje notatki użytkownika na podstawie danych wprowadzonych w formularzu. Po zapisaniu zmian w bazie danych, wyświetla komunikat o pomyślnej aktualizacji.
+
+\subsection{\texttt{messages()}}
+\label{sec:messages}
+Funkcja \texttt{messages()} służy do obsługi wysyłania wiadomości między użytkownikami.
+
+\textbf{Zwracane wartości:} Renderowanie szablonu do wysyłania wiadomości.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{MessageForm} - formularz do wysyłania wiadomości.
+    \item \texttt{Message} - model wiadomości.
+    \item \texttt{User} - model użytkownika.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+    \item \texttt{render\_template} - funkcja Flask do renderowania szablonów HTML.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja umożliwia wysyłanie wiadomości do innych użytkowników. Administrator może wysyłać wiadomości do wszystkich użytkowników, a zwykli użytkownicy tylko do siebie. Po wysłaniu wiadomości, zwiększa licznik nieprzeczytanych wiadomości odbiorcy i zapisuje wiadomość w bazie danych.
+
+\subsection{\texttt{message()}}
+\label{sec:message}
+Funkcja \texttt{message()} służy do wyświetlania szczegółów pojedynczej wiadomości.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{message\_id} - identyfikator wiadomości do wyświetlenia.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Renderowanie szablonu z wyświetleniem szczegółów wiadomości.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{Message} - model wiadomości.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{render\_template} - funkcja Flask do renderowania szablonów HTML.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja pobiera wiadomość o podanym identyfikatorze z bazy danych i przekazuje ją do szablonu HTML, aby wyświetlić jej szczegóły.
+
+\subsection{\texttt{delete\_message()}}
+\label{sec:delete_message}
+Funkcja \texttt{delete\_message()} służy do usuwania wiadomości.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{message\_id} - identyfikator wiadomości do usunięcia.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Przekierowanie do listy wiadomości.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{Message} - model wiadomości.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja usuwa wybraną wiadomość z bazy danych i wyświetla komunikat o jej usunięciu.
+
+\subsection{\texttt{assign\_meters\_to\_user()}}
+\label{sec:assign_meters_to_user}
+Funkcja \texttt{assign\_meters\_to\_user()} służy do przypisywania liczników do użytkownika.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{user\_id} - identyfikator użytkownika, do którego mają zostać przypisane liczniki.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Przekierowanie do widoku szczegółów użytkownika.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkownika.
+    \item \texttt{Meter} - model licznika.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja przypisuje liczniki do użytkownika na podstawie listy numerów liczników. Jeśli licznik nie jest przypisany do innego użytkownika, zostaje przypisany do wybranego użytkownika. Funkcja zwraca listę pomyślnie przypisanych liczników oraz listę liczników, których przypisanie było niemożliwe.
+
+\subsection{\texttt{summary()}}
+\label{sec:summary}
+Funkcja \texttt{summary()} służy do wyświetlania podsumowania odczytów liczników na podstawie wybranego adresu i zakresu dat.
+
+\textbf{Parametry:} Brak parametrów w URL.
+
+\textbf{Zwracane wartości:} Renderowanie szablonu z wyświetleniem odczytów liczników.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{MeterReading} - model odczytów liczników.
+    \item \texttt{Meter} - model liczników.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{render\_template} - funkcja Flask do renderowania szablonów HTML.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja filtruje odczyty liczników na podstawie podanego adresu i zakresu dat. Jeśli metoda żądania to POST, pobiera dane z formularza i filtruje odczyty, a następnie przekazuje je do szablonu HTML.
+
+\subsection{\texttt{assign\_meter\_to\_superuser()}}
+\label{sec:assign_meter_to_superuser}
+Funkcja \texttt{assign\_meter\_to\_superuser()} służy do przypisywania liczników do superużytkowników przez administratora.
+
+\textbf{Parametry:} Brak parametrów w URL.
+
+\textbf{Zwracane wartości:} Renderowanie szablonu lub przekierowanie.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{Meter} - model liczników.
+    \item \texttt{User} - model użytkowników.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja umożliwia administratorowi przypisanie wybranego licznika do superużytkownika. Po weryfikacji danych z formularza, przypisuje licznik i zapisuje zmiany w bazie danych.
+
+\subsection{\texttt{superuser\_assign\_meter()}}
+\label{sec:superuser_assign_meter}
+Funkcja \texttt{superuser\_assign\_meter()} umożliwia superużytkownikowi przypisanie liczników do użytkowników.
+
+\textbf{Parametry:} Brak parametrów w URL.
+
+\textbf{Zwracane wartości:} Renderowanie szablonu lub przekierowanie.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkowników.
+    \item \texttt{Meter} - model liczników.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja pozwala superużytkownikowi na przypisanie liczników do użytkowników. Po weryfikacji danych z formularza, przypisuje licznik do użytkownika i zapisuje zmiany w bazie danych.
+
+\subsection{\texttt{superuser\_user\_overview()}}
+\label{sec:superuser_user_overview}
+Funkcja \texttt{superuser\_user\_overview()} służy do wyświetlania szczegółów użytkownika przez superużytkownika.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{user\_id} - identyfikator użytkownika.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Renderowanie szablonu z informacjami o użytkowniku.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkowników.
+    \item \texttt{Meter} - model liczników.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja wyświetla szczegółowe informacje o użytkowniku, w tym przypisane mu liczniki. Umożliwia przypisanie nowych liczników do użytkownika oraz aktualizację notatek.
+
+\subsection{\texttt{superuser\_panel()}}
+\label{sec:superuser_panel}
+Funkcja \texttt{superuser\_panel()} służy do wyświetlania panelu superużytkownika.
+
+\textbf{Parametry:} Brak parametrów w URL.
+
+\textbf{Zwracane wartości:} Renderowanie szablonu panelu superużytkownika.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkowników.
+    \item \texttt{Meter} - model liczników.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja umożliwia superużytkownikowi dodawanie nowych użytkowników oraz zarządzanie przypisanymi użytkownikom licznikami.
+
+\subsection{\texttt{assign\_user\_to\_superuser()}}
+\label{sec:assign_user_to_superuser}
+Funkcja \texttt{assign\_user\_to\_superuser()} służy do przypisywania użytkowników do superużytkownika przez administratora.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{superuser\_id} - identyfikator superużytkownika.
+    \item \texttt{user\_id} - identyfikator użytkownika do przypisania.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Przekierowanie do widoku szczegółów użytkownika.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkowników.
+    \item \texttt{Meter} - model liczników.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja umożliwia administratorowi przypisanie wybranego użytkownika do superużytkownika. Po weryfikacji danych, przypisuje użytkownika i zapisuje zmiany w bazie danych.
+
+\subsection{\texttt{remove\_assigned\_user()}}
+\label{sec:remove_assigned_user}
+Funkcja \texttt{remove\_assigned\_user()} służy do usuwania przypisania użytkownika do superużytkownika.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{user\_id} - identyfikator przypisanego użytkownika.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Przekierowanie do widoku szczegółów użytkownika.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkowników.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja umożliwia superużytkownikowi lub administratorowi usunięcie przypisania użytkownika do superużytkownika. Po weryfikacji uprawnień, usuwa przypisanie i zapisuje zmiany w bazie danych.
+
+\subsection{\texttt{generate\_report()}}
+\label{sec:generate_report}
+Funkcja \texttt{generate\_report()} służy do generowania raportu na podstawie wybranych liczników i okresu czasu.
+
+\textbf{Parametry:} Brak parametrów w URL.
+
+\textbf{Zwracane wartości:} Renderowanie szablonu generowania raportu lub przekierowanie do wyświetlenia raportu.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkowników.
+    \item \texttt{session} - sesja użytkownika do przechowywania danych raportu.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{flash} - funkcja Flask do wyświetlania komunikatów.
+    \item \texttt{redirect} - funkcja Flask do przekierowań.
+    \item \texttt{url\_for} - funkcja Flask do generowania URL.
+    \item \texttt{create\_report\_data} - funkcja pomocnicza do tworzenia danych raportu.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja umożliwia superużytkownikowi lub administratorowi wygenerowanie raportu na podstawie wybranych liczników i okresu czasu. Dane raportu są zapisywane w sesji, a następnie użytkownik jest przekierowywany do strony z wyświetleniem raportu.
+
+\subsection{\texttt{display\_report()}}
+\label{sec:display_report}
+Funkcja \texttt{display\_report()} służy do wyświetlania wygenerowanego raportu.
+
+\textbf{Parametry:} Brak parametrów w URL.
+
+\textbf{Zwracane wartości:} Renderowanie szablonu wyświetlającego raport.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{session} - sesja użytkownika do pobierania danych raportu.
+    \item \texttt{datetime} - moduł do obsługi dat i czasu.
+    \item \texttt{relativedelta} - funkcja do manipulacji datami.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{render\_template} - funkcja Flask do renderowania szablonów HTML.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja pobiera dane raportu z sesji, przetwarza je (w tym tłumaczy nazwy miesięcy na polski), a następnie renderuje szablon HTML z wyświetleniem raportu.
+
+\subsection{\texttt{add\_multiple\_users()}}
+\label{sec:add_multiple_users}
+Funkcja \texttt{add\_multiple\_users()} służy do dodawania wielu użytkowników na podstawie listy adresów email.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{emails} - lista adresów email pobrana z formularza.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Renderowanie szablonu z podsumowaniem dodanych użytkowników.
+
+\textbf{Używane zmienne:}
+\begin{itemize}
+    \item \texttt{User} - model użytkowników.
+    \item \texttt{db} - instancja bazy danych.
+\end{itemize}
+
+\textbf{Odwołania:}
+\begin{itemize}
+    \item \texttt{render\_template} - funkcja Flask do renderowania szablonów HTML.
+    \item \texttt{generate\_random\_password} - funkcja pomocnicza do generowania losowych haseł.
+\end{itemize}
+
+\textbf{Opis działania:}
+Funkcja przetwarza listę adresów email, dla każdego adresu tworzy nowego użytkownika z losowo wygenerowanym hasłem, dodaje użytkowników do bazy danych, a następnie renderuje szablon HTML z podsumowaniem dodanych użytkowników.
+
+\section{Plik \texttt{utils.py}}
+Plik \texttt{utils.py} zawiera pomocnicze funkcje i dekoratory używane w aplikacji.
+
+\subsection{\texttt{admin\_required}}
+Dekorator \texttt{admin\_required} służy do ograniczenia dostępu do określonych funkcji tylko dla użytkowników z uprawnieniami administratora.
+
+\textbf{Parametry:} Funkcja przyjmuje jako argument inną funkcję.
+
+\textbf{Zwracane wartości:} Funkcja dekorowana lub przekierowanie do strony głównej w przypadku braku uprawnień.
+
+\textbf{Opis działania:}
+Sprawdza, czy bieżący użytkownik posiada uprawnienia administratora. Jeśli nie, wyświetla komunikat o braku uprawnień i przekierowuje na stronę główną.
+
+\subsection{\texttt{superuser\_required}}
+Dekorator \texttt{superuser\_required} służy do ograniczenia dostępu do określonych funkcji tylko dla superużytkowników lub administratorów.
+
+\textbf{Parametry:} Funkcja przyjmuje jako argument inną funkcję.
+
+\textbf{Zwracane wartości:} Funkcja dekorowana lub przekierowanie do strony głównej w przypadku braku uprawnień.
+
+\textbf{Opis działania:}
+Sprawdza, czy bieżący użytkownik jest superużytkownikiem lub administratorem. Jeśli nie, wyświetla komunikat o braku uprawnień i przekierowuje na stronę główną.
+
+\subsection{\texttt{allowed\_file}}
+Funkcja \texttt{allowed\_file} sprawdza, czy przesłany plik ma dozwolone rozszerzenie.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{filename} - nazwa pliku do sprawdzenia.
+\end{itemize}
+
+\textbf{Zwracane wartości:} \texttt{True} jeśli plik ma dozwolone rozszerzenie, w przeciwnym razie \texttt{False}.
+
+\textbf{Opis działania:}
+Sprawdza, czy nazwa pliku zawiera kropkę i czy rozszerzenie pliku to 'csv'.
+
+\subsection{\texttt{is\_valid\_link}}
+Funkcja \texttt{is\_valid\_link} sprawdza, czy link aktywacyjny jest ważny.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{user\_link} - link aktywacyjny do sprawdzenia.
+\end{itemize}
+
+\textbf{Zwracane wartości:} \texttt{True} jeśli link jest ważny, w przeciwnym razie \texttt{False}.
+
+\textbf{Opis działania:}
+Sprawdza, czy link aktywacyjny istnieje w bazie danych i czy nie został już użyty.
+
+\subsection{\texttt{process\_csv\_water}}
+Funkcja \texttt{process\_csv\_water} przetwarza plik CSV z odczytami wodomierzy.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{file\_path} - ścieżka do pliku CSV.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Komunikat o wyniku przetwarzania pliku.
+
+\textbf{Opis działania:}
+Funkcja odczytuje plik CSV, przetwarza dane, tworzy lub aktualizuje obiekty w bazie danych. Obsługuje różne formaty plików i kodowania.
+
+\subsection{\texttt{process\_csv\_heat}}
+Funkcja \texttt{process\_csv\_heat} przetwarza plik CSV z odczytami ciepłomierzy.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{file\_path} - ścieżka do pliku CSV.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Komunikat o wyniku przetwarzania pliku.
+
+\textbf{Opis działania:}
+Podobnie jak \texttt{process\_csv\_water}, funkcja odczytuje i przetwarza plik CSV, tworząc lub aktualizując obiekty w bazie danych.
+
+\subsection{\texttt{process\_csv\_events}}
+Funkcja \texttt{process\_csv\_events} przetwarza plik CSV z zdarzeniami dla wodomierzy lub ciepłomierzy.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{file\_path} - ścieżka do pliku CSV.
+    \item \texttt{type} - typ urządzenia ('water' lub 'heat').
+\end{itemize}
+
+\textbf{Zwracane wartości:} Brak. Funkcja zapisuje dane bezpośrednio do bazy danych.
+
+\textbf{Opis działania:}
+Funkcja odczytuje plik CSV i na jego podstawie tworzy zdarzenia w bazie danych, przypisując je do odpowiednich liczników.
+
+\subsection{\texttt{create\_report\_data}}
+Funkcja \texttt{create\_report\_data} tworzy dane do raportu na podstawie wybranych liczników i okresu.
+
+\textbf{Parametry:}
+\begin{itemize}
+    \item \texttt{selected\_meters} - lista wybranych liczników.
+    \item \texttt{report\_period} - okres czasu dla raportu.
+\end{itemize}
+
+\textbf{Zwracane wartości:} Lista danych do wykorzystania w raporcie.
+
+\textbf{Opis działania:}
+Funkcja generuje dane do raportu, łącząc informacje o licznikach, ich odczytach i adresach w określonym okresie czasu.
+\newpage
+\chapter{Szablony}
+\label{sec:templates}
+ \begin{itemize}
+        \item \hyperref[sec:base]{\texttt{base.html}} - Szablon głowny aplikacji.
+        \item \hyperref[sec:adminpanel]{\texttt{admin\_panel.html}} - główny panel administratora.
+        \item \hyperref[sec:displayreport]{\texttt{display\_report.html}} - wyświetlenie raportów.
+        \item \hyperref[sec:editaccount]{\texttt{edit\_account.html}} - zmiana hasła do konta.
+        \item \hyperref[sec:generatereport]{\texttt{generate\_report.html}} - generowanie raportów.
+        \item \hyperref[sec:home]{\texttt{home.html}} - strona domowa.
+        \item \hyperref[sec:login]{\texttt{login.html}} - strona logowania.
+        \item \hyperref[sec:messages]{\texttt{messages.html}} - skrzynka wiadomości.
+        \item \hyperref[sec:meterdetails]{\texttt{meter\_details.html}} - szczegóły licznika.
+        \item \hyperref[sec:sendmessage]{\texttt{send\_message.html}} - wysyłanie wiadomości przez administratora.
+        \item \hyperref[sec:superuserpanel]{\texttt{superuser\_panel.html}} - Panel administratora zasobów.
+        \item \hyperref[sec:superuseruseroverview]{\texttt{superuser\_user\_overview.html}} - podgląd użytkownika przez superusera
+        \item \hyperref[sec:uploadcsv]{\texttt{upload\_csv.html}} - przesyłanie plików wsadowych.
+        \item \hyperref[sec:useroverview]{\texttt{user\_overview.html}} - Przeglądużytkownika przez administratora.
+    \end{itemize}
+\section{base.html}
+\label{sec:base}
+Plik \texttt{base.html} jest podstawowym szablonem HTML używanym w aplikacji \textit{Zdalny Odczyt}. Ten szablon definiuje strukturę podstawową, wspólną dla wszystkich innych szablonów w aplikacji. Zawiera definicje nagłówka, stopki, nawigacji oraz głównego kontenera treści.
+
+\subsection{Nagłówek}
+Nagłówek zawiera podstawowe informacje o stronie, takie jak tytuł, metadane, linki do arkuszy stylów CSS oraz skryptów JavaScript. Używa Bootstrapa dla stylizacji oraz responsywności strony.
+
+\subsection{Nawigacja}
+Sekcja nawigacji definiuje pasek nawigacyjny, który jest stały (przyklejony do górnej części ekranu). Zawiera linki do różnych sekcji aplikacji, które są dostępne w zależności od statusu autoryzacji użytkownika.
+
+\subsection{Główny Kontener Treści}
+Główny kontener (\texttt{<div class="center-box">}) jest miejscem, w którym wyświetlane są różne treści, w zależności od konkretnej strony. Zawartość tego kontenera jest dynamicznie zmieniana przez inne szablony, które rozszerzają \texttt{base.html}.
+
+\subsection{Stopka}
+Stopka zawiera informacje kontaktowe, linki do polityki prywatności, warunków użytkowania, regulaminu oraz podpis autora aplikacji.
+
+\subsection{Skrypty JavaScript}
+\begin{itemize}
+    \item \textbf{Bootstrap JS:} Używany do obsługi elementów interaktywnych w Bootstrapie, takich jak rozwijane menu.
+    \item \textbf{jQuery:} Biblioteka JavaScript używana przez Bootstrap.
+    \item \textbf{Popper.js:} Biblioteka używana do pozycjonowania elementów (np. dymków) w Bootstrapie.
+    \item \textbf{Plotly.js:} Biblioteka do tworzenia interaktywnych wykresów.
+    \item \textbf{Własny skrypt:} Skrypt do dostosowywania marginesu górnego głównego kontenera treści, tak aby nie był zasłaniany przez pasek nawigacyjny.
+\end{itemize}
+
+\subsection{Stylizacja}
+Stylizacja jest realizowana głównie przez Bootstrap oraz dodatkowy arkusz stylów \texttt{style.css}, który definiuje niestandardowe style specyficzne dla aplikacji.
+
+\section{admin\_panel.html}
+\label{sec:adminpanel}
+Plik \texttt{admin\_panel.html} jest szablonem HTML używanym w panelu administratora aplikacji \textit{Zdalny Odczyt}. Szablon ten rozszerza \texttt{base.html} i zawiera specyficzne dla panelu administratora elementy interfejsu użytkownika oraz logikę.
+
+\subsection{Sekcja Dodawania Użytkowników}
+Sekcja ta zawiera przyciski do pokazywania i ukrywania formularzy do dodawania pojedynczych użytkowników oraz dodawania wielu użytkowników naraz. Umożliwia administratorowi zarządzanie użytkownikami w systemie.
+
+\subsection{Lista Użytkowników i Liczników}
+Sekcja ta zawiera rozwijane listy użytkowników i liczników. Użytkownik może wyszukiwać użytkowników i liczniki, a także przeglądać szczegóły każdego z nich. Lista jest dynamicznie filtrowana na podstawie wprowadzonego tekstu.
+
+\subsection{Formularze}
+Szablon zawiera dwa formularze:
+\begin{itemize}
+\item \textbf{Formularz Dodawania Użytkownika:} Pozwala na dodanie nowego użytkownika do systemu.
+\item \textbf{Formularz Dodawania Wielu Użytkowników:} Umożliwia dodanie wielu użytkowników jednocześnie poprzez wprowadzenie adresów e-mail.
+\end{itemize}
+
+\subsection{Skrypty JavaScript}
+Szablon zawiera skrypty JavaScript do obsługi interakcji użytkownika, takich jak pokazywanie/ukrywanie formularzy, wyszukiwanie użytkowników/liczników oraz zmiana ikon w przyciskach rozwijanych.
+
+\subsection{Stylizacja}
+Stylizacja jest zgodna z \texttt{base.html}, z dodatkowymi stylami specyficznymi dla panelu administratora, takimi jak szerokość i układ elementów.
+
+\subsection{Zastosowanie}
+Szablon \texttt{admin\_panel.html} jest używany jako interfejs dla administratorów systemu, umożliwiając im zarządzanie użytkownikami i licznikami, a także dostęp do funkcji administracyjnych, takich jak generowanie raportów i przesyłanie plików CSV.
+
+\section{display\_report.html}
+\label{sec:displayreport}
+Plik \texttt{display\_report.html} jest szablonem HTML używanym do wyświetlania raportów w aplikacji \textit{Zdalny Odczyt}. Szablon ten rozszerza \texttt{base.html} i zawiera elementy interfejsu użytkownika oraz logikę specyficzną dla wyświetlania raportów.
+
+\subsection{Nagłówek Raportu}
+Nagłówek raportu zawiera logo aplikacji, tytuł raportu oraz informacje o okresie, którego raport dotyczy. Dodatkowo, wyświetla listę unikalnych adresów e-mail użytkowników uwzględnionych w raporcie.
+
+\subsection{Przyciski Akcji}
+Sekcja zawiera przyciski umożliwiające pobranie raportu w formacie CSV lub JSON oraz drukowanie raportu w formacie PDF. Każdy przycisk jest powiązany ze skryptem JavaScript, który realizuje odpowiednią funkcjonalność.
+
+\subsection{Tabela Raportu}
+Tabela zawiera szczegółowe dane raportu, w tym adresy e-mail użytkowników, adresy liczników, numery radiowe, typy liczników oraz odczyty dla poszczególnych miesięcy. Dane są dynamicznie generowane na podstawie danych przekazanych do szablonu.
+
+\subsection{Skrypty JavaScript}
+\begin{itemize}
+\item \textbf{Eksport do CSV:} Skrypt umożliwia eksport danych tabeli do pliku CSV. Użytkownik ma możliwość wyboru między eksportem z polskimi znakami a trybem zgodności.
+\item \textbf{Drukowanie PDF:} Skrypt umożliwia wydrukowanie raportu. Użytkownik jest informowany o sugerowanej nazwie pliku PDF.
+\item \textbf{Eksport do JSON:} Skrypt umożliwia eksport danych tabeli do pliku JSON.
+\end{itemize}
+
+\subsection{Stylizacja}
+Stylizacja jest zgodna z \texttt{base.html}, z dodatkowymi stylami specyficznymi dla raportu, takimi jak formatowanie tabeli i ukrywanie niektórych elementów podczas drukowania.
+
+\subsection{Zastosowanie}
+Szablon \texttt{display\_report.html} jest używany do prezentacji wygenerowanych raportów, umożliwiając użytkownikom przeglądanie, eksportowanie i drukowanie szczegółowych danych dotyczących odczytów liczników.
+
+
+
+\section{edit\_account.html}
+\label{sec:editaccount}
+Plik \texttt{edit\_account.html} jest szablonem HTML używanym do umożliwienia użytkownikom edycji ich profilu w aplikacji \textit{Zdalny Odczyt}. Szablon ten rozszerza \texttt{base.html} i zawiera formularz do zmiany hasła użytkownika.
+
+\subsection{Przycisk Powrotu}
+Na górze strony znajduje się przycisk "Powrót", który umożliwia użytkownikowi powrót do strony głównej aplikacji.
+
+\subsection{Formularz Edycji Profilu}
+Formularz umożliwia użytkownikowi zmianę swojego hasła. Zawiera następujące pola:
+\begin{itemize}
+\item \textbf{Obecne hasło:} Pole do wprowadzenia obecnego hasła użytkownika.
+\item \textbf{Nowe hasło:} Pole do wprowadzenia nowego hasła.
+\item \textbf{Potwierdź nowe hasło:} Pole do potwierdzenia nowego hasła.
+\item \textbf{Przycisk Zmień hasło:} Przycisk do zatwierdzenia zmian.
+\end{itemize}
+
+\subsection{Walidacja Formularza}
+Formularz zawiera walidację po stronie serwera, która zapewnia, że nowe hasło jest poprawnie wprowadzone i potwierdzone.
+
+\subsection{Stylizacja}
+Stylizacja formularza jest zgodna z ogólnym stylem aplikacji, z wykorzystaniem klas Bootstrapa do formatowania pól formularza i przycisków.
+
+\subsection{Zastosowanie}
+Szablon \texttt{edit\_account.html} jest używany do zapewnienia użytkownikom możliwości bezpiecznej zmiany ich hasła, co jest kluczowym aspektem zarządzania kontem użytkownika w aplikacji.
+
+
+\section{generate\_report.html}
+\label{sec:generatereport}
+Plik \texttt{generate\_report.html} jest szablonem HTML używanym do generowania raportów w aplikacji \textit{Zdalny Odczyt}. Szablon ten rozszerza \texttt{base.html} i zawiera interfejs do wyboru użytkowników i liczników, dla których ma być wygenerowany raport.
+
+\subsection{Przycisk Powrotu}
+Na górze strony znajduje się przycisk "Powrót", który umożliwia użytkownikowi powrót do strony głównej aplikacji.
+
+\subsection{Formularz Generowania Raportu}
+Formularz umożliwia użytkownikowi wybór konkretnych użytkowników i ich liczników, dla których ma być wygenerowany raport. Zawiera następujące elementy:
+\begin{itemize}
+\item \textbf{Pole wyszukiwania:} Umożliwia filtrowanie listy użytkowników i liczników.
+\item \textbf{Lista użytkowników i liczników:} Wyświetla użytkowników i przypisane do nich liczniki, które można wybrać do raportu.
+\item \textbf{Wybór okresu raportu:} Pozwala na wybór okresu, za który ma być wygenerowany raport.
+\item \textbf{Przycisk generowania raportu:} Przycisk do zatwierdzenia wyboru i generowania raportu.
+\end{itemize}
+
+\subsection{Interaktywność}
+Szablon zawiera skrypty JavaScript, które zapewniają interaktywność formularza:
+\begin{itemize}
+\item \textbf{Rozwijanie listy liczników:} Użytkownik może rozwijać i zwijać listę liczników dla każdego użytkownika.
+\item \textbf{Zaznaczanie liczników:} Możliwość zaznaczenia wszystkich liczników dla wybranego użytkownika.
+\item \textbf{Filtrowanie listy:} Możliwość wyszukiwania użytkowników i liczników na podstawie wprowadzonego tekstu.
+\end{itemize}
+
+\subsection{Stylizacja}
+Stylizacja formularza jest zgodna z ogólnym stylem aplikacji, z wykorzystaniem klas Bootstrapa do formatowania elementów formularza.
+
+\subsection{Zastosowanie}
+Szablon \texttt{generate\_report.html} jest używany do umożliwienia administratorom i superużytkownikom generowania szczegółowych raportów dotyczących odczytów liczników dla wybranych użytkowników i okresów, co jest kluczowym aspektem zarządzania danymi w aplikacji.
+
+\section{home.html}
+\label{sec:home}
+Plik \texttt{home.html} jest szablonem HTML używanym jako strona główna aplikacji \textit{Zdalny Odczyt} dla zalogowanych użytkowników. Szablon ten rozszerza \texttt{base.html} i zawiera interfejs użytkownika prezentujący listę przypisanych liczników oraz inne informacje.
+
+\subsection{Powitanie Użytkownika}
+Na górze strony znajduje się powitanie użytkownika, które wykorzystuje adres e-mail zalogowanego użytkownika do wyświetlenia jego nazwy (część adresu e-mail przed znakiem @).
+
+\subsection{Lista Przypisanych Liczników}
+Sekcja ta zawiera listę liczników przypisanych do zalogowanego użytkownika. Każdy element listy jest linkiem do szczegółów danego licznika. Lista ta może być filtrowana za pomocą pola wyszukiwania.
+
+\begin{itemize}
+\item \textbf{Pole wyszukiwania:} Umożliwia filtrowanie listy liczników na podstawie wprowadzonego tekstu.
+\item \textbf{Lista liczników:} Wyświetla liczniki przypisane do użytkownika. Liczniki mogą być wyświetlane z nazwą (jeśli jest dostępna) i numerem radiowym.
+\end{itemize}
+
+\subsection{Interaktywność}
+Szablon zawiera skrypt JavaScript, który umożliwia dynamiczne filtrowanie listy liczników na podstawie wprowadzonego tekstu w polu wyszukiwania.
+
+\subsection{Stylizacja}
+Stylizacja strony jest zgodna z ogólnym stylem aplikacji, z wykorzystaniem klas Bootstrapa oraz niestandardowych stylów CSS.
+
+\subsection{Zastosowanie}
+Szablon \texttt{home.html} jest używany jako strona startowa dla zalogowanych użytkowników, zapewniając szybki dostęp do informacji o ich licznikach oraz umożliwiając łatwe zarządzanie i monitorowanie ich danych. Jest to kluczowy element interfejsu użytkownika, który ułatwia nawigację i dostęp do funkcji aplikacji.
+
+
+\section{login.html}
+\label{sec:login}
+Plik \texttt{login.html} jest szablonem HTML używanym do prezentowania formularza logowania w aplikacji \textit{Zdalny Odczyt}. Ten szablon rozszerza \texttt{base.html} i zawiera interfejs użytkownika umożliwiający zalogowanie się do systemu.
+
+\subsection{Formularz Logowania}
+Formularz logowania jest centralnym elementem tego szablonu. Umożliwia użytkownikom wprowadzenie swoich danych logowania, takich jak adres e-mail i hasło.
+
+\begin{itemize}
+\item \textbf{Pole e-mail:} Użytkownik wprowadza swój adres e-mail.
+\item \textbf{Pole hasła:} Użytkownik wprowadza swoje hasło.
+\item \textbf{Pole zapamiętaj mnie:} Opcja umożliwiająca użytkownikowi pozostanie zalogowanym nawet po zamknięciu przeglądarki.
+\item \textbf{Przycisk logowania:} Przycisk, który użytkownik naciska, aby zalogować się do systemu.
+\end{itemize}
+
+\subsection{Link do Rejestracji}
+Pod formularzem znajduje się link do strony firmy \textit{Smartbits}, gdzie nowi użytkownicy mogą skontaktować się w celu utworzenia konta. Jest to przydatne dla osób, które jeszcze nie mają konta w systemie.
+
+\subsection{Stylizacja}
+Formularz logowania jest stylizowany za pomocą klas Bootstrapa oraz niestandardowych stylów CSS, aby zapewnić spójność z resztą aplikacji. Formularz jest umieszczony w kontenerze o ograniczonej szerokości, co ułatwia czytelność i koncentrację na formularzu.
+
+\subsection{Zastosowanie}
+Szablon \texttt{login.html} jest kluczowym elementem interfejsu użytkownika, umożliwiającym dostęp do zabezpieczonych części aplikacji. Jest to pierwszy punkt interakcji dla użytkowników, którzy muszą się zalogować, aby korzystać z funkcji aplikacji. Zapewnia bezpieczny i wygodny sposób na weryfikację tożsamości użytkownika.
+
+\section{message.html}
+\label{sec:login}
+Plik \texttt{message.html} jest szablonem HTML używanym do wyświetlania szczegółów pojedynczej wiadomości w aplikacji \textit{Zdalny Odczyt}. Ten szablon rozszerza \texttt{base.html} i prezentuje treść, nadawcę, temat oraz datę wysłania wiadomości.
+
+\subsection{Szczegóły Wiadomości}
+Szablon prezentuje następujące informacje o wiadomości:
+\begin{itemize}
+\item \textbf{Temat:} Wyświetla temat wiadomości.
+\item \textbf{Nadawca:} Pokazuje adres e-mail nadawcy wiadomości.
+\item \textbf{Data:} Data i czas wysłania wiadomości.
+\item \textbf{Treść:} Zawartość wiadomości.
+\end{itemize}
+
+\subsection{Przycisk Usunięcia Wiadomości}
+Użytkownik ma możliwość usunięcia wiadomości za pomocą przycisku "Usuń wiadomość". Po kliknięciu, użytkownik jest przekierowywany do akcji usuwania wiadomości w systemie.
+
+\subsection{Przycisk Powrotu}
+Dodatkowo, szablon zawiera przycisk "Powrót", który umożliwia użytkownikowi powrót do poprzedniej strony. Jest to realizowane przez funkcję JavaScript \texttt{goBack()}, która wywołuje \texttt{window.history.back()}.
+
+\subsection{Stylizacja i Układ}
+Szablon jest stylizowany za pomocą Bootstrapa i niestandardowych stylów CSS, aby zapewnić spójność z resztą aplikacji. Informacje o wiadomości są prezentowane w czytelny i uporządkowany sposób, co ułatwia użytkownikowi zrozumienie treści.
+
+\subsection{Zastosowanie}
+Szablon \texttt{message.html} jest używany do wyświetlania szczegółów konkretnych wiadomości w aplikacji. Jest to ważny element interfejsu użytkownika, umożliwiający użytkownikom przeglądanie i zarządzanie swoimi wiadomościami. Zapewnia łatwy dostęp do ważnych informacji zawartych w komunikatach.
+
+
+\section{messages.html}
+\label{sec:messages}
+Plik \texttt{messages.html} jest szablonem HTML wykorzystywanym do zarządzania wiadomościami w aplikacji \textit{Zdalny Odczyt}. Ten szablon rozszerza \texttt{base.html} i umożliwia użytkownikom wysyłanie nowych wiadomości oraz przeglądanie skrzynki odbiorczej i wysłanej.
+
+\subsection{Formularz Wysyłania Wiadomości}
+Dla użytkowników z uprawnieniami administratora, szablon zawiera formularz do wysyłania wiadomości. Formularz umożliwia wybór odbiorców, wpisanie tematu oraz treści wiadomości. Użytkownik może również wybrać opcję wysłania wiadomości do wszystkich użytkowników.
+
+\subsection{Lista Wiadomości}
+Szablon prezentuje listę wysłanych i otrzymanych wiadomości. Dla każdej wiadomości wyświetlane są informacje o nadawcy, temacie oraz dacie wysłania. Użytkownik może kliknąć na wiadomość, aby zobaczyć jej szczegóły lub usunąć ją.
+
+\subsection{Filtrowanie Wiadomości}
+Szablon zawiera funkcjonalność filtrowania wiadomości według nadawcy i tematu. Użytkownik może wpisać tekst w pola filtrów, a lista wiadomości zostanie automatycznie zaktualizowana, aby wyświetlić tylko te, które pasują do kryteriów wyszukiwania.
+
+\subsection{Skrypty JavaScript}
+Szablon wykorzystuje JavaScript do obsługi filtrowania wiadomości oraz interakcji z formularzem. Skrypty pozwalają na dynamiczne ukrywanie i wyświetlanie wiadomości oraz elementów interfejsu użytkownika w zależności od akcji użytkownika.
+
+\subsection{Stylizacja i Układ}
+Podobnie jak inne szablony, \texttt{messages.html} korzysta z Bootstrapa i niestandardowych stylów CSS. Układ jest zaprojektowany tak, aby zapewnić łatwą nawigację i czytelność, a także spójność z resztą aplikacji.
+
+\subsection{Zastosowanie}
+Szablon \texttt{messages.html} jest kluczowym elementem interfejsu użytkownika, umożliwiającym zarządzanie komunikacją w aplikacji. Zapewnia użytkownikom platformę do wysyłania i odbierania wiadomości, co jest ważnym aspektem współpracy i komunikacji w ramach systemu.
+
+\section{meter\_details.html}
+\label{sec:meterdetails}
+Plik \texttt{mete\_details.html} jest szablonem HTML wykorzystywanym do wyświetlania szczegółowych informacji o liczniku w aplikacji \textit{Zdalny Odczyt}. Ten szablon rozszerza \texttt{base.html} i umożliwia użytkownikom przeglądanie danych o konkretnym liczniku, w tym odczytów, adresu, a także zarządzanie nazwą i adresem licznika.
+
+\subsection{Informacje o Liczniku}
+Szablon prezentuje podstawowe informacje o liczniku, takie jak numer radiowy, typ licznika (wodomierz/ciepłomierz), oraz przypisany adres. Użytkownik może edytować adres licznika oraz, w przypadku bycia właścicielem, zmieniać jego nazwę.
+
+\subsection{Formularz Edycji Adresu}
+Jeśli licznik nie ma przypisanego adresu, użytkownik może dodać nowy adres za pomocą formularza. Jeśli adres jest już przypisany, użytkownik może go edytować. Formularz umożliwia wprowadzenie miasta, ulicy, numeru budynku, mieszkania oraz kodu pocztowego.
+
+\subsection{Wykresy i Tabele Odczytów}
+Szablon zawiera funkcjonalność do wyświetlania odczytów licznika w formie wykresów (liniowych lub słupkowych) oraz tabel. Użytkownik może wybrać zakres dat dla wyświetlanych danych. Dodatkowo, istnieje możliwość eksportu danych do formatu CSV oraz drukowania wykresów.
+
+\subsection{Skrypty JavaScript}
+Szablon wykorzystuje JavaScript do obsługi interakcji z formularzami, wykresami i tabelami. Skrypty pozwalają na dynamiczne aktualizowanie wykresów i tabel w zależności od wybranego zakresu dat, a także na eksport danych do CSV i drukowanie.
+
+\subsection{Stylizacja i Układ}
+Stylizacja szablonu jest zgodna z resztą aplikacji, wykorzystując Bootstrap i niestandardowe style CSS. Układ jest zaprojektowany tak, aby zapewnić intuicyjną nawigację i łatwość obsługi.
+
+\subsection{Zastosowanie}
+Szablon \texttt{meter\_details.html} jest kluczowym elementem interfejsu użytkownika, umożliwiającym szczegółowy wgląd w dane licznika. Jest to ważne dla zarządzania i monitorowania zużycia w ramach systemu \textit{Zdalny Odczyt}.
+
+
+\section{send\_message.html}
+\label{sec:sendmessage}
+Plik \texttt{send\_message.html} jest szablonem HTML używanym do wysyłania wiadomości w aplikacji \textit{Zdalny Odczyt}. Ten szablon rozszerza \texttt{base.html} i umożliwia użytkownikom tworzenie oraz wysyłanie wiadomości do innych użytkowników systemu.
+
+\subsection{Formularz Wysyłania Wiadomości}
+Szablon zawiera formularz do wysyłania wiadomości, który składa się z następujących elementów:
+\begin{itemize}
+\item \textbf{Odbiorca:} Pole wyboru, które pozwala użytkownikowi wybrać odbiorcę wiadomości z listy dostępnych użytkowników.
+\item \textbf{Temat:} Pole tekstowe do wprowadzenia tematu wiadomości.
+\item \textbf{Treść:} Pole tekstowe do wprowadzenia treści wiadomości.
+\item \textbf{Przycisk Wysyłania:} Przycisk do wysłania wiadomości.
+\end{itemize}
+
+\subsection{Stylizacja i Układ}
+Stylizacja formularza jest spójna z resztą aplikacji, wykorzystując Bootstrap oraz niestandardowe style CSS. Układ formularza jest przejrzysty i intuicyjny, co ułatwia użytkownikowi proces tworzenia i wysyłania wiadomości.
+
+\subsection{Zastosowanie}
+Szablon \texttt{send\_message.html} odgrywa ważną rolę w komunikacji między użytkownikami systemu \textit{Zdalny Odczyt}. Umożliwia on wysyłanie informacji, zapytań czy powiadomień, co jest kluczowe dla efektywnej współpracy i zarządzania w ramach systemu.
+
+
+\section{superuser\_panel.html}
+\label{sec:superuserpanel}
+Plik \texttt{superuser\_panel.html} jest szablonem HTML używanym w aplikacji \textit{Zdalny Odczyt} do zarządzania zasobami przez superusera. Szablon ten rozszerza \texttt{base.html} i zapewnia interfejs do przeglądania i zarządzania zasobami użytkowników.
+
+\subsection{Panel Administratora Zasobów}
+Szablon zawiera panel superusera, który umożliwia przeglądanie listy użytkowników i zarządzanie nimi. Panel składa się z dwóch głównych sekcji:
+\begin{itemize}
+\item \textbf{Lewy Panel:} Zawiera listę użytkowników. Użytkownik może wyszukać konkretnego użytkownika za pomocą paska wyszukiwania.
+\item \textbf{Prawy Panel:} Zawiera szczegółowe informacje o wybranym użytkowniku. Ta sekcja jest dynamicznie wypełniana w zależności od wybranego użytkownika.
+\end{itemize}
+
+\subsection{Wyszukiwanie Użytkowników}
+Szablon zawiera funkcjonalność wyszukiwania, która pozwala filtrować listę użytkowników w czasie rzeczywistym. Użytkownik może wpisać nazwę użytkownika w pasku wyszukiwania, a lista użytkowników zostanie automatycznie zaktualizowana, aby wyświetlić tylko te, które pasują do kryteriów wyszukiwania.
+
+\subsection{Interakcje i Skrypty JavaScript}
+Szablon wykorzystuje JavaScript do obsługi interakcji z użytkownikiem, takich jak wyszukiwanie użytkowników. Skrypt nasłuchuje zmian w polu wyszukiwania i aktualizuje wyświetlaną listę użytkowników w zależności od wprowadzonego zapytania.
+
+\subsection{Zastosowanie}
+Szablon \texttt{admin\_resources.html} jest kluczowym elementem interfejsu administratora w systemie \textit{Zdalny Odczyt}. Umożliwia on administratorom efektywne zarządzanie zasobami użytkowników, co jest niezbędne do utrzymania porządku i efektywności w systemie.
+
+
+\section{superuser\_user\_overview.html}
+\label{sec:superuseruseroverview}
+Plik \texttt{superuser\_user\_overview.html} jest szablonem HTML używanym w aplikacji \textit{Zdalny Odczyt} do przeglądu informacji o użytkownikach przez superużytkownika. Szablon ten rozszerza \texttt{superuser\_panel.html} i zapewnia interfejs do przeglądania szczegółów dotyczących konkretnego użytkownika oraz zarządzania przypisanymi do niego licznikami.
+
+\subsection{Przegląd Użytkownika}
+Szablon zawiera sekcję z podstawowymi informacjami o użytkowniku, takimi jak email. Jest to punkt wyjścia do dalszego zarządzania zasobami przypisanymi do tego użytkownika.
+
+\subsection{Przypisane Liczniki}
+W tej sekcji wyświetlana jest lista liczników przypisanych do użytkownika. Każdy element listy zawiera numer radiowy licznika oraz linki do szczegółów licznika i opcji usunięcia licznika.
+
+\subsection{Interakcje i Skrypty JavaScript}
+\begin{itemize}
+\item \textbf{Filtrowanie Liczników:} Użytkownik może filtrować listę przypisanych liczników, wpisując numer radiowy w pole wyszukiwania. Lista jest aktualizowana w czasie rzeczywistym, aby wyświetlać tylko te liczniki, które pasują do kryteriów wyszukiwania.
+\item \textbf{Usuwanie Liczników:} Szablon zawiera funkcję JavaScript \texttt{confirmDelete}, która wyświetla okno dialogowe potwierdzenia przed usunięciem licznika. Jeśli użytkownik potwierdzi, przekierowuje do odpowiedniego URL, aby usunąć licznik.
+\end{itemize}
+
+\subsection{Zastosowanie}
+Szablon \texttt{superuser\_user\_overview.html} jest kluczowym elementem interfejsu superużytkownika w systemie \textit{Zdalny Odczyt}. Umożliwia on superużytkownikom efektywne zarządzanie zasobami przypisanymi do konkretnych użytkowników, co jest niezbędne do utrzymania porządku i efektywności w systemie.
+
+\section{upload\_csv.html}
+\label{sec:uploadcsv}
+Plik \texttt{upload\_csv.html} jest szablonem HTML używanym w aplikacji \textit{Zdalny Odczyt} do przesyłania plików CSV przez administratora. Szablon ten rozszerza \texttt{base.html} i zapewnia interfejs do przesyłania plików CSV zawierających dane odczytów liczników.
+
+\subsection{Formularz Przesyłania Pliku}
+Szablon zawiera formularz umożliwiający użytkownikowi przesłanie pliku CSV. Formularz składa się z następujących elementów:
+\begin{itemize}
+\item \textbf{Typ Urządzenia:} Pole wyboru (\texttt{form.device\_type}), które pozwala użytkownikowi wybrać typ urządzenia, dla którego plik jest przesyłany (np. wodomierz, ciepłomierz).
+\item \textbf{Plik:} Pole do przesyłania pliku (\texttt{form.file}), które umożliwia użytkownikowi wybranie pliku CSV z lokalnego systemu plików.
+\item \textbf{Przycisk Prześlij:} Przycisk (\texttt{form.submit}), który po kliknięciu przesyła formularz i załączony plik do serwera.
+\end{itemize}
+
+\subsection{Zastosowanie}
+Szablon \texttt{upload\_csv.html} jest kluczowym elementem interfejsu administratora w systemie \textit{Zdalny Odczyt}. Umożliwia on administratorom łatwe przesyłanie danych odczytów liczników w formacie CSV, co jest niezbędne do aktualizacji i utrzymania bazy danych odczytów. Jest to ważne dla zapewnienia ciągłości i dokładności danych w systemie.
+
+\subsection{Stylizacja i Układ}
+Formularz jest stylizowany za pomocą Bootstrapa, co zapewnia spójność i estetykę interfejsu użytkownika. Układ formularza jest prosty i intuicyjny, co ułatwia użytkownikom przesyłanie plików
+
+
+\section{user\_meters.html}
+\label{sec:usermeters}
+Plik \texttt{user\_meters.html} jest szablonem HTML w aplikacji \textit{Zdalny Odczyt}, który wyświetla listę liczników przypisanych do zalogowanego użytkownika. Szablon ten rozszerza \texttt{base.html} i zapewnia spersonalizowany widok dla użytkownika.
+
+\subsection{Lista Liczników}
+Szablon zawiera listę (\texttt{<ul class="user-list">}) elementów (\texttt{<li class="user-item">}), gdzie każdy element reprezentuje jeden licznik przypisany do użytkownika. Dla każdego licznika wyświetlane są następujące informacje:
+\begin{itemize}
+\item \textbf{Numer Licznika:} Numer identyfikacyjny licznika (\texttt{meter.radio\_number}).
+\item \textbf{Nazwa:} Nazwa przypisana licznikowi (\texttt{meter.name}), jeśli istnieje.
+\item \textbf{Typ:} Typ licznika, np. wodomierz lub ciepłomierz (\texttt{meter.type}).
+\end{itemize}
+
+\subsection{Linki do Szczegółów Licznika}
+Każdy element listy zawiera link (\texttt{<a href="{{ url\_for('main\_routes.meter\_details', meter\_id=meter.id) }}">}), który przekierowuje użytkownika do strony ze szczegółami danego licznika. Umożliwia to użytkownikowi szybki dostęp do szczegółowych informacji o każdym z jego liczników.
+
+\subsection{Zastosowanie}
+Szablon \texttt{user\_meters.html} jest używany do prezentowania użytkownikom listy ich liczników w łatwy do przeglądania sposób. Jest to szczególnie przydatne w systemach monitorowania zużycia, gdzie użytkownicy mogą mieć przypisanych wiele liczników.
+
+\subsection{Stylizacja i Układ}
+Lista liczników jest stylizowana za pomocą klas CSS zdefiniowanych w Bootstrapie oraz niestandardowych arkuszy stylów, co zapewnia spójny i estetyczny wygląd. Układ jest prosty i przejrzysty, co ułatwia użytkownikom nawigację i dostęp do informacji o swoich licznikach.
+
+\section{user\_overview.html}
+\label{sec:useroverview}
+Plik \texttt{user\_overview.html} jest szablonem HTML w aplikacji \textit{Zdalny Odczyt}, który wyświetla szczegółowe informacje o użytkowniku oraz zarządza przypisanymi do niego licznikami i innymi użytkownikami. Szablon ten rozszerza \texttt{admin\_panel.html} i jest przeznaczony głównie dla administratorów i superużytkowników.
+
+\subsection{Informacje o Użytkowniku}
+Sekcja ta zawiera podstawowe informacje o użytkowniku, takie jak email, przypisanie do superużytkownika (jeśli istnieje), oraz role użytkownika (superuser, administrator).
+
+\subsection{Notatki o Użytkowniku}
+W tej sekcji wyświetlane są notatki dotyczące użytkownika. Umożliwia to administratorom i superużytkownikom dodawanie i edycję notatek, co może być przydatne do zarządzania informacjami o użytkownikach.
+
+\subsection{Przypisane Liczniki}
+Lista przypisanych liczników jest wyświetlana wraz z opcjami przeglądania szczegółów każdego licznika oraz możliwością ich usunięcia. Dostępne są również funkcje do przypisywania nowych liczników do użytkownika.
+
+\subsection{Wolne Liczniki}
+Sekcja ta zawiera listę wolnych liczników, które mogą być przypisane do użytkownika. Użytkownik może przypisać liczniki, wpisując ich numery radiowe.
+
+\subsection{Przypisani Użytkownicy (dla Superużytkowników)}
+Jeśli zalogowany użytkownik jest superużytkownikiem, wyświetlana jest lista użytkowników przypisanych do niego. Umożliwia to zarządzanie przypisaniami użytkowników.
+
+\subsection{Usuwanie i Dezaktywacja Użytkownika}
+Administratorzy mają możliwość usunięcia lub dezaktywacji konta użytkownika. Wymaga to potwierdzenia hasłem administratora.
+
+\subsection{Skrypty JavaScript}
+Szablon zawiera skrypty JavaScript do obsługi dynamicznych elementów interfejsu, takich jak filtrowanie listy liczników i użytkowników, edycja notatek, oraz potwierdzenie akcji usunięcia.
+
+\subsection{Stylizacja i Układ}
+Stylizacja i układ szablonu są zgodne z ogólnym motywem aplikacji, zapewniając spójność i czytelność interfejsu użytkownika.
+
+\chapter{Style CSS}
+\section{GeneralStyles.css}
+
+\subsection{Opis}
+Plik \texttt{GeneralStyles.css} zawiera ogólne style, które są wspólne dla całej aplikacji. Definiuje podstawowe ustawienia dla elementów HTML, takie jak kolor tekstu, tło, czcionki i inne podstawowe style.
+
+\subsection{Zawartość}
+\begin{itemize}
+    \item \textbf{Kolory tekstu:} Ustawia domyślny kolor tekstu dla nagłówków (h1-h6).
+    \item \textbf{Tło:} Definiuje tło dla całej strony.
+    \item \textbf{Box-shadow:} Stosuje cień do elementów z klasą \texttt{.box-element}.
+\end{itemize}
+
+\section{Layout.css}
+
+\subsection{Opis}
+Plik \texttt{Layout.css} odpowiada za układ i rozmieszczenie elementów na stronie. Zawiera style dotyczące układu strony, takie jak marginesy, paddingi, flexbox i inne właściwości CSS służące do tworzenia układu strony.
+
+\subsection{Zawartość}
+\begin{itemize}
+    \item \textbf{Grid i Flexbox:} Style dla układu strony wykorzystującego grid i flexbox.
+    \item \textbf{Responsywność:} Style dla responsywnego zachowania elementów na różnych rozmiarach ekranu.
+    \item \textbf{Nawigacja:} Style dla paska nawigacyjnego i jego elementów.
+\end{itemize}
+
+\section{MediaQueries.css}
+
+\subsection{Opis}
+Plik \texttt{MediaQueries.css} zawiera zapytania medialne, które są używane do tworzenia responsywnego designu. Dzięki temu strona będzie poprawnie wyświetlana na różnych urządzeniach, takich jak telefony komórkowe, tablety i monitory o różnych rozdzielczościach.
+
+\subsection{Zawartość}
+\begin{itemize}
+    \item \textbf{Zapytania medialne:} Zawiera różne zapytania medialne dla różnych rozmiarów ekranu.
+    \item \textbf{Responsywne style:} Dostosowuje układ, rozmiar czcionek i inne elementy, aby strona była czytelna i funkcjonalna na urządzeniach mobilnych.
+\end{itemize}
+
+\section{ButtonsAndForms.css}
+
+\subsection{Opis}
+Plik \texttt{ButtonsAndForms.css} zawiera style specyficzne dla przycisków i formularzy. Definiuje wygląd przycisków, pól formularzy, etykiet i innych elementów formularzy.
+
+\subsection{Zawartość}
+\begin{itemize}
+    \item \textbf{Przyciski:} Style dla różnych typów przycisków, w tym przycisków akcji, przycisków anulowania itp.
+    \item \textbf{Formularze:} Style dla pól formularzy, takich jak pola tekstowe, pola wyboru, przyciski radiowe i inne.
+\end{itemize}
+
+\section{UserList.css}
+
+\subsection{Opis}
+Plik \texttt{UserList.css} zawiera style specyficzne dla listy użytkowników. Zawiera style dla elementów listy, takich jak elementy listy użytkowników, stylowanie tekstu, marginesy i inne właściwości związane z wyświetlaniem listy użytkowników.
+
+\subsection{Zawartość}
+\begin{itemize}
+    \item \textbf{Lista użytkowników:} Style dla listy użytkowników, w tym marginesy, paddingi, tło, obramowanie i inne właściwości CSS.
+    \item \textbf{Elementy listy:} Style dla poszczególnych elementów listy, w tym stylowanie linków, przycisków i innych elementów interfejsu użytkownika związanych z listą użytkowników.
+\end{itemize}
+
+\chapter{Linki i kontakt}
+
+\section{serwer SQL}
+\lstdefinelanguage{json}{
+    basicstyle=\normalfont\ttfamily,
+    numbers=left,
+    numberstyle=\scriptsize,
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=lines,
+    backgroundcolor=\color{background},
+    literate=
+     *{0}{{{\color{numb}0}}}{1}
+      {1}{{{\color{numb}1}}}{1}
+      {2}{{{\color{numb}2}}}{1}
+      {3}{{{\color{numb}3}}}{1}
+      {4}{{{\color{numb}4}}}{1}
+      {5}{{{\color{numb}5}}}{1}
+      {6}{{{\color{numb}6}}}{1}
+      {7}{{{\color{numb}7}}}{1}
+      {8}{{{\color{numb}8}}}{1}
+      {9}{{{\color{numb}9}}}{1}
+      {:}{{{\color{punct}{:}}}}{1}
+      {,}{{{\color{punct}{,}}}}{1}
+      {\{}{{{\color{delim}{\{}}}}{1}
+      {\}}{{{\color{delim}{\}}}}}{1}
+      {[}{{{\color{delim}{[}}}}{1}
+      {]}{{{\color{delim}{]}}}}{1},
+}
+
+
+
+\colorlet{punct}{red!60!black}
+\definecolor{background}{HTML}{EEEEEE}
+\definecolor{delim}{RGB}{20,105,176}
+\colorlet{numb}{magenta!60!black}
+
+\lstdefinelanguage{json}{
+    basicstyle=\normalfont\ttfamily,
+    numbers=left,
+    numberstyle=\scriptsize,
+    stepnumber=1,
+    numbersep=8pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=lines,
+    backgroundcolor=\color{background},
+    literate=
+     *{0}{{{\color{numb}0}}}{1}
+      {1}{{{\color{numb}1}}}{1}
+      {2}{{{\color{numb}2}}}{1}
+      {3}{{{\color{numb}3}}}{1}
+      {4}{{{\color{numb}4}}}{1}
+      {5}{{{\color{numb}5}}}{1}
+      {6}{{{\color{numb}6}}}{1}
+      {7}{{{\color{numb}7}}}{1}
+      {8}{{{\color{numb}8}}}{1}
+      {9}{{{\color{numb}9}}}{1}
+      {:}{{{\color{punct}{:}}}}{1}
+      {,}{{{\color{punct}{,}}}}{1}
+      {\{}{{{\color{delim}{\{}}}}{1}
+      {\}}{{{\color{delim}{\}}}}}{1}
+      {[}{{{\color{delim}{[}}}}{1}
+      {]}{{{\color{delim}{]}}}}{1},
+}
+
+\begin{document}
+
+\begin{lstlisting}[language=json,firstnumber=1]
+{
+    "kind": "v12.0",
+    "properties": {
+        "administratorLogin": "develop",
+        "version": "12.0",
+        "state": "Ready",
+        "fullyQualifiedDomainName": "wodomierze-online.database.windows.net",
+        "privateEndpointConnections": [],
+        "minimalTlsVersion": "1.2",
+        "publicNetworkAccess": "Enabled",
+        "administrators": {
+            "administratorType": "ActiveDirectory",
+            "principalType": "User",
+            "login": "wwadamski_gmail.com#EXT#@365smartbits.onmicrosoft.com",
+            "sid": "985b0fc8-f283-40a9-b18d-d0c436cc7fdd",
+            "tenantId": "e671a479-5d4c-4f94-993f-7a6cf6722c6e",
+            "azureADOnlyAuthentication": false
+        },
+        "restrictOutboundNetworkAccess": "Disabled"
+    },
+    "location": "polandcentral",
+    "tags": {},
+    "id": "/subscriptions/f17ad7e8-2a8d-481a-b86d-b775b0be5a26/resourceGroups/Dev-Smartbits/providers/Microsoft.Sql/servers/wodomierze-online",
+    "name": "wodomierze-online",
+    "type": "Microsoft.Sql/servers"
+}
+\end{lstlisting}
+
+\section{Serwer aplikacji}
+\href{https://app.azure.com/e671a479-5d4c-4f94-993f-7a6cf6722c6e/subscriptions/f17ad7e8-2a8d-481a-b86d-b775b0be5a26/resourceGroups/Dev-Smartbits/providers/Microsoft.Web/sites/dev-webapp01-smbts?utm_source=Portal}{https://app.azure.com/e671a479-5d4c-4f94-993f-7a6cf6722c6e/subscriptions/f17ad7e8-2a8d-481a-b86d-b775b0be5a26/resourceGroups/Dev-Smartbits/providers/Microsoft.Web/sites/dev-webapp01-smbts?utm_source=Portal}
+\section{Github}
+\href{https://github.com/SmartbitsSp/wodomierze-online.git}{https://github.com/SmartbitsSp/wodomierze-online.git}
+\section{Kontakt}
+email: wwadamski@gmail.com \newline
+tel.: 728 326 669
+\end{document}
+    \end
+

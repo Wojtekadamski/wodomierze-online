@@ -1,4 +1,4 @@
-import locale
+import random
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
@@ -6,15 +6,13 @@ from flask import render_template, flash, redirect, url_for, Blueprint, request,
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from src.config import UPLOAD_FOLDER, EMAIL_KEY
-from src.forms import LoginForm, RegistrationForm, MeterForm, MeterReadingForm, UploadForm, UserForm, EditAccountForm, \
+from src.forms import LoginForm, MeterForm, UploadForm, UserForm, EditAccountForm, \
     UserNotesForm, UserOverviewForm, MessageForm, AssignMeterToSuperuserForm, AssignMeterToUserForm
 from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events, \
     superuser_required, create_report_data
-from cryptography.fernet import Fernet
 
-cipher = Fernet(EMAIL_KEY)
 main_routes = Blueprint('main_routes', __name__)
 
 
@@ -67,33 +65,6 @@ def logout():
     logout_user()
     return redirect(url_for('main_routes.home'))
 
-
-@main_routes.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('main_routes.home'))
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        user = User(email=form.email.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash('Congratulations, you are now a registered user!')
-        return redirect(url_for('main_routes.login'))
-    return render_template('register.html', title='Register', form=form)
-
-
-@main_routes.route('/add_reading', methods=['GET', 'POST'])
-@admin_required
-def add_reading():
-    form = MeterReadingForm()
-    if form.validate_on_submit():
-        reading = MeterReading(date=form.date.data, reading=form.reading.data, meter_id=form.meter_id.data)
-        db.session.add(reading)
-        db.session.commit()
-        flash('Reading has been added.')
-        return redirect(url_for('main_routes.home'))
-    return render_template('add_reading.html', form=form)
 
 
 @main_routes.route('/upload_csv', methods=['GET', 'POST'])
@@ -724,7 +695,7 @@ def generate_report():
     return render_template('generate_report.html', users=users)
 
 
-#locale.setlocale(locale.LC_TIME, 'pl_PL')
+
 @main_routes.route('/display_report')
 @superuser_required
 def display_report():
@@ -769,3 +740,25 @@ def display_report():
 
 
 
+
+@main_routes.route('/add_multiple_users', methods=['POST'])
+@admin_required
+def add_multiple_users():
+    emails = request.form.get('emails').split()
+    user_data = []
+
+    for email in emails:
+        password = generate_random_password()
+        email = email.replace(',', '')
+        email = email.replace(';', '')
+        user = User(email=email)
+        user.set_password(password)
+        db.session.add(user)
+        user_data.append({'email': email, 'password': password})
+
+    db.session.commit()
+    return render_template('user_summary.html', users=user_data)
+
+def generate_random_password():
+    chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    return ''.join(random.choice(chars) for _ in range(8))

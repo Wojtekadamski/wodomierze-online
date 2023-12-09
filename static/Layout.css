@@ -1,0 +1,80 @@
+.navbar {
+    z-index: 10000;
+    position: fixed;
+    top: 0px;
+    width: 100%;
+    overflow: hidden;
+}
+
+.navbar .btn {
+    margin: 5px;
+    white-space: nowrap;
+}
+
+.content-box {
+    display: flex;
+}
+
+.right-box, .left-box {
+    background-color: hsl(189, 100%, 86%);
+    border-radius: 10px;
+    opacity: 0.9;
+    width: 50%;
+    height: 70%;
+    vertical-align: top;
+    margin-left: 5%;
+}
+
+.left-box {
+    margin-left: 1%;
+    width: 30%;
+    height: 70%;
+}
+
+.center-box, .footer {
+    margin-left: 17.5%;
+    background-color: hsl(189, 100%, 86%);
+    border-radius: 10px;
+    opacity: 0.97;
+    width: 70%;
+    align-items: center;
+    padding: 20px;
+}
+
+.footer {
+    margin-top: 1%;
+}
+
+.scroll-bar {
+    height: 40%;
+    overflow: hidden;
+    overflow-y: scroll;
+}
+
+.limited-list {
+    height: 300px;
+    overflow-y: scroll;
+}
+
+.user-overview-container {
+    border-left: 2px solid rgba(53, 72, 193, 0.7);
+    padding-left: 20px;
+}
+
+.search-bar {
+    margin-bottom: 5px;
+    margin-left: 10px;
+}
+
+.logo {
+    max-width: 150px;
+    margin-right: 10px;
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+
+.address-input {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+}

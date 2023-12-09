@@ -292,43 +292,6 @@ def process_csv_events(file_path, type):
 from datetime import datetime, timedelta
 
 
-# def create_report_data(selected_meters, report_period):
-#     end_date = datetime.now()
-#     start_date = end_date - relativedelta(months=report_period)
-#     print(start_date, end_date)
-#     report_data = []
-#     for meter_radio_number in selected_meters:
-#         meter = Meter.query.filter_by(radio_number=meter_radio_number).first()
-#         if meter:
-#             readings = MeterReading.query.filter(
-#                 MeterReading.meter_id == meter.id,
-#                 MeterReading.date >= start_date,
-#
-#                 MeterReading.date <= end_date
-#             ).all()
-#             print(meter.readings)
-#
-#             if not readings:
-#                 report_data.append({
-#                     'user_email': meter.user.email if meter.user else 'N/A',
-#                     'meter_number': meter.radio_number,
-#                     'meter_type': meter.type,
-#                     'reading': 'Brak odczytów',
-#                     'reading_date': 'N/A'
-#                 })
-#             else:
-#                 for reading in readings:
-#                     report_data.append({
-#                         'user_email': meter.user.email if meter.user else 'N/A',
-#                         'meter_number': meter.radio_number,
-#                         'meter_type': meter.type,
-#                         'reading': reading.reading,
-#                         'reading_date': reading.date.strftime('%Y-%m-%d')
-#                     })
-#
-#     return report_data
-
-
 def create_report_data(selected_meters, report_period):
     end_date = datetime.now().replace(day=1) - relativedelta(days=1)
     start_date = end_date - relativedelta(months=report_period)

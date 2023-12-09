@@ -9,8 +9,17 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='GeneralStyles.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='Layout.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ButtonsAndForms.css')}}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='MediaQueries.css')}}">
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}">
+
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    {% block extra_css %}
+
+    {% endblock extra_css %}
 
 </head>
 
@@ -120,7 +129,7 @@ window.onresize = adjustMargin;
             </div>
         </div>
     </div>
-    <center style="color: #f9f9f9">&#169 Wojciech Adamski   2023</center>
+    <center style="color: #f9f9f9"> <a href="https://linkedin.com/in/wojciech-adamski-b1a3b1a9/ " class="signature" target="_blank"> Wojciech Adamski</a>   2023</center>
 </footer>
 
 
@@ -139,3 +148,4 @@ window.onresize = adjustMargin;
 
 </body>
 </html>
+
