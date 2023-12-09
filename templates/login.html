@@ -1,4 +1,9 @@
 {% extends 'base.html' %}
+{% block extra_css %}
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ButtonsAndForms.css')}}">
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='MediaQueries.css')}}">
+
+{% endblock extra_css %}
 {% block content %}
     <h1>Logowanie</h1>
     <div class="right-box">

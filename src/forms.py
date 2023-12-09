@@ -3,25 +3,13 @@ from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, IntegerField, DateField, \
     FloatField, FileField, TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
-
 from src.config import ALLOWED_EXTENSIONS
 from src.models import User, Meter
 
+'''
+Description: Formularz logowania
 
-class RegistrationForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Hasło', validators=[DataRequired()])
-    password2 = PasswordField('Powtórz hasło', validators=[DataRequired(), EqualTo('password')])
-    is_admin = BooleanField('Administrator')
-    submit = SubmitField('Zarejestruj')
-
-
-    def validate_email(self, email):
-        user = User.query.filter_by(email=email.data).first()
-        if user is not None:
-            raise ValidationError('Użyj innego adresu email.')
-
-
+'''
 class LoginForm(FlaskForm):
     email = StringField('Użytkownik', validators=[DataRequired(), Email()])
     password = PasswordField('Hasło', validators=[DataRequired()])
@@ -35,16 +23,15 @@ class MeterForm(FlaskForm):
     user_id = IntegerField('User ID', validators=[DataRequired()])
     submit = SubmitField('Add Meter')
 
-class MeterReadingForm(FlaskForm):
-    date = DateField('Date', format='%Y-%m-%d', validators=[DataRequired()])
-    reading = FloatField('Reading', validators=[DataRequired()])
-    meter_id = IntegerField('Meter ID', validators=[DataRequired()])
-    submit = SubmitField('Add Reading')
 
 class UploadForm(FlaskForm):
-    device_type = SelectField('Typ pliku', choices=[('water', 'Wodomierz'), ('heat', 'Ciepłomierz'), ('events_water', 'Zdarzenia wodomierze'), ('events_heat', 'Zdarzenia ciepłomierze')], validators=[DataRequired()])
+    device_type = SelectField('Typ pliku', choices=[('water', 'Wodomierz'), ('heat', 'Ciepłomierz'),
+                                                    ('events_water', 'Zdarzenia wodomierze'),
+                                                    ('events_heat', 'Zdarzenia ciepłomierze')],
+                              validators=[DataRequired()])
     file = FileField('Plik CSV', validators=[FileRequired(), FileAllowed(ALLOWED_EXTENSIONS), DataRequired()])
     submit = SubmitField('Prześlij')
+
 
 class UserForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -54,28 +41,33 @@ class UserForm(FlaskForm):
     is_superuser = BooleanField('Superuser')
     submit = SubmitField('Dodaj')
 
+
 class EditAccountForm(FlaskForm):
     current_password = PasswordField('Obecne hasło', validators=[DataRequired()])
     new_password = PasswordField('Nowe hasło', validators=[DataRequired()])
     confirm_password = PasswordField('Powtórz nowe hasło', validators=[DataRequired(), EqualTo('new_password')])
     submit = SubmitField('Zmień hasło')
 
+
 class AddUserForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     confirm_email = StringField('Confirm Email', validators=[DataRequired(), Email(), EqualTo('email')])
     submit = SubmitField('Add User')
 
+
 class SetPasswordForm(FlaskForm):
     new_password = PasswordField('New Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password', message='Passwords must match')])
+    confirm_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password',
+                                                                                                 message='Passwords must match')])
     submit = SubmitField('Set Password')
+
 
 class UserNotesForm(FlaskForm):
     notes = TextAreaField('Notatki')
 
+
 class UserOverviewForm(FlaskForm):
     notes = TextAreaField('Notatki')
-
 
 
 class MessageForm(FlaskForm):
@@ -105,6 +97,5 @@ class AssignMeterToUserForm(FlaskForm):
     def __init__(self, superuser_id, *args, **kwargs):
         super(AssignMeterToUserForm, self).__init__(*args, **kwargs)
         self.user_id.choices = [(u.id, u.email) for u in User.query.filter_by(superuser_id=superuser_id).all()]
-        self.meter_id.choices = [(m.id, m.radio_number) for m in Meter.query.filter_by(owned_by_superuser=superuser_id).all()]
-
-
+        self.meter_id.choices = [(m.id, m.radio_number) for m in
+                                 Meter.query.filter_by(owned_by_superuser=superuser_id).all()]

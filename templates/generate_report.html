@@ -1,5 +1,11 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ReportStyles.css')}}">
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ButtonsAndForms.css')}}">
+
+{% endblock extra_css %}
+
 {% block content %}
     <a href="{{ url_for('main_routes.home') }} " class="btn btn-secondary no-print">Powrót</a>
 

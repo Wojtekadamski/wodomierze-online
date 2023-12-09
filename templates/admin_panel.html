@@ -1,5 +1,11 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='UserList.css')}}">
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ReportStyles.css')}}">
+
+{% endblock extra_css %}
+
 {% block content %}
     <h2>Panel Administratora</h2>
     <div class="content-box">

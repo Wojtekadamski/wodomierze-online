@@ -1,6 +1,6 @@
 from flask import flash, redirect, url_for
-from werkzeug.exceptions import InternalServerError
 
+# Error handling for basic error codes, needs to be updated
 def handle_internal_server_error(e):
     flash('Error 500 - Wystąpił błąd w aplikacji.', 'danger')
     return redirect(url_for('main_routes.home'))

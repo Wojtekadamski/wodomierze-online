@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 
+{% block extra_css %}
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ButtonsAndForms.css')}}">
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='MediaQueries.css')}}">
+
+{% endblock extra_css %}
+
 {% block content %}
 
 <button class="btn btn-secondary no-print" onclick="goBack()">Powrót</button>

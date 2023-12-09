@@ -509,3 +509,12 @@ h1,h2,h3,h4,h5,h6{
     .table-responsive {
     overflow-x: auto;
 }
+
+    .signature {
+    color: inherit; /* Dziedziczy kolor tekstu, w którym się znajduje */
+    text-decoration: none; /* Usuwa domyślne podkreślenie linku */
+}
+
+.signature:hover {
+    text-decoration: underline; /* Dodaje podkreślenie po najechaniu myszką */
+}

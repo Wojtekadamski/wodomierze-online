@@ -1,5 +1,11 @@
 {% extends 'admin_panel.html' %}
 
+{% block extra_css %}
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='UserList.css')}}">
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ButtonsAndForms.css')}}">
+
+{% endblock extra_css %}
+
 {% block user %}
 
     <!-- Informacje o użytkowniku -->

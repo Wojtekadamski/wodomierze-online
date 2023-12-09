@@ -6,7 +6,7 @@ from flask import render_template, flash, redirect, url_for, Blueprint, request,
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from src.config import UPLOAD_FOLDER, EMAIL_KEY
-from src.forms import LoginForm, RegistrationForm, MeterForm, MeterReadingForm, UploadForm, UserForm, EditAccountForm, \
+from src.forms import LoginForm, MeterForm, UploadForm, UserForm, EditAccountForm, \
     UserNotesForm, UserOverviewForm, MessageForm, AssignMeterToSuperuserForm, AssignMeterToUserForm
 from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address
 import os
@@ -65,33 +65,6 @@ def logout():
     logout_user()
     return redirect(url_for('main_routes.home'))
 
-
-@main_routes.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('main_routes.home'))
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        user = User(email=form.email.data)
-        user.set_password(form.password.data)
-        db.session.add(user)
-        db.session.commit()
-        flash('Congratulations, you are now a registered user!')
-        return redirect(url_for('main_routes.login'))
-    return render_template('register.html', title='Register', form=form)
-
-
-@main_routes.route('/add_reading', methods=['GET', 'POST'])
-@admin_required
-def add_reading():
-    form = MeterReadingForm()
-    if form.validate_on_submit():
-        reading = MeterReading(date=form.date.data, reading=form.reading.data, meter_id=form.meter_id.data)
-        db.session.add(reading)
-        db.session.commit()
-        flash('Reading has been added.')
-        return redirect(url_for('main_routes.home'))
-    return render_template('add_reading.html', form=form)
 
 
 @main_routes.route('/upload_csv', methods=['GET', 'POST'])
@@ -776,6 +749,8 @@ def add_multiple_users():
 
     for email in emails:
         password = generate_random_password()
+        email = email.replace(',', '')
+        email = email.replace(';', '')
         user = User(email=email)
         user.set_password(password)
         db.session.add(user)
