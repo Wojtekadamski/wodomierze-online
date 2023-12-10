@@ -7,7 +7,7 @@
 {% block content %}
 <div class="center-box">
     <h2>Prześlij Plik</h2>
-    <form method="POST" action="{{ url_for('main_routes.upload_csv') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ url_for('admin_routes.upload_csv') }}" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
         <div class="form-group" style="width: 150px;">
             {{ form.device_type.label }}

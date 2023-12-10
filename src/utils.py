@@ -1,5 +1,6 @@
 import csv
 import os
+import random
 
 import chardet as chardet
 from dateutil.relativedelta import relativedelta
@@ -351,3 +352,10 @@ def create_report_data(selected_meters, report_period):
             report_data.append(meter_data)
 
     return report_data
+
+
+def generate_random_password():
+    chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    return ''.join(random.choice(chars) for _ in range(8))
+
+

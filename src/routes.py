@@ -8,12 +8,15 @@ from werkzeug.utils import secure_filename
 from src.config import UPLOAD_FOLDER, EMAIL_KEY
 from src.forms import LoginForm, MeterForm, UploadForm, UserForm, EditAccountForm, \
     UserNotesForm, UserOverviewForm, MessageForm, AssignMeterToSuperuserForm, AssignMeterToUserForm
-from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address
+from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address, MeterEditHistory
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events, \
-    superuser_required, create_report_data
+    superuser_required, create_report_data, generate_random_password
 
 main_routes = Blueprint('main_routes', __name__)
+admin_routes = Blueprint('admin_routes', __name__)
+superuser_routes = Blueprint('superuser_routes', __name__)
+user_routes = Blueprint('user_routes', __name__)
 
 
 @main_routes.route('/')
@@ -28,7 +31,7 @@ def welcome():
 def home():
     if current_user.is_authenticated:
         if current_user.is_admin:
-            return redirect(url_for("main_routes.admin_panel"))
+            return redirect(url_for("admin_routes.admin_panel"))
         if current_user.is_superuser:
             return redirect(url_for("main_routes.superuser_panel"))
         user = current_user
@@ -67,7 +70,7 @@ def logout():
 
 
 
-@main_routes.route('/upload_csv', methods=['GET', 'POST'])
+@admin_routes.route('/upload_csv', methods=['GET', 'POST'])
 @admin_required
 def upload_csv():
     form = UploadForm()
@@ -86,7 +89,7 @@ def upload_csv():
             result_message = process_csv_heat(file_path)
             if "Problem" in result_message:
                 flash(result_message, 'danger')
-                return redirect(url_for('main_routes.upload_csv'))
+                return redirect(url_for('admin_routes.upload_csv'))
         elif device_type == 'events_water':
             # Nowy kod dla plików zdarzeń
             process_csv_events(file_path, 'water')
@@ -102,7 +105,7 @@ def upload_csv():
     return render_template('upload_csv.html', form=form)
 
 
-@main_routes.route('/user_meters')
+@user_routes.route('/user_meters')
 @login_required
 def user_meters():
     user_meters = Meter.query.filter_by(user_id=current_user.id).all()
@@ -133,7 +136,7 @@ def delete_meter(meter_id):
     db.session.delete(meter)
     db.session.commit()
     flash('Licznik został usunięty.', 'success')
-    return redirect(url_for('main_routes.admin_panel'))
+    return redirect(url_for('admin_routes.admin_panel'))
 
 
 @main_routes.route('/clear_readings/<int:meter_id>', methods=['POST'])
@@ -173,9 +176,23 @@ def update_meter_address(meter_id):
         building_number = request.form.get('building_number')
         apartment_number = request.form.get('apartment_number')
         postal_code = request.form.get('postal_code')
+        edit_details = ""
+
 
         if meter.address:
             address = meter.address
+            # Sprawdź, które pola zostały zmienione i zapisz szczegóły
+            if address.city != city:
+                edit_details += f"City changed from {address.city} to {city}. "
+            if address.street != street:
+                edit_details += f"Street changed from {address.street} to {street}. "
+            if address.building_number != building_number:
+                edit_details += f"Building number changed from {address.building_number} to {building_number}. "
+            if address.apartment_number != apartment_number:
+                edit_details += f"Apartment number changed from {address.apartment_number} to {apartment_number}. "
+            if address.postal_code != postal_code:
+                edit_details += f"Postal code changed from {address.postal_code} to {postal_code}. "
+
             address.city = city
             address.street = street
             address.building_number = building_number
@@ -185,13 +202,20 @@ def update_meter_address(meter_id):
             address = Address(city=city, street=street, building_number=building_number,
                               apartment_number=apartment_number, postal_code=postal_code)
             meter.address = address
+            edit_details = f"Address added.{address.city}, {address.street}, {address.building_number}, {address.apartment}"
             db.session.add(address)
+
+        # Dodaj wpis do historii edycji
+        if edit_details:
+            new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id,
+                                                     edit_type='Change Address', edit_details=edit_details)
+            db.session.add(new_history_entry)
 
         db.session.commit()
     return redirect(url_for('main_routes.meter_details', meter_id=meter.id))
 
 
-@main_routes.route('/admin_panel', methods=['GET'])
+@admin_routes.route('/admin_panel', methods=['GET'])
 @admin_required  # Dodaj dekorator, aby wymagać uprawnień administratora
 def admin_panel():
     user_form = UserForm()
@@ -206,7 +230,7 @@ def admin_panel():
         db.session.add(user)
         db.session.commit()
         flash('Użytkownik został dodany.')
-        return redirect(url_for('main_routes.admin_panel'))
+        return redirect(url_for('admin_routes.admin_panel'))
 
     users = get_all_users()
     meters = Meter.query.all()
@@ -224,7 +248,7 @@ def add_user():
 
         if existing_user:
             flash('Użytkownik o podanym adresie email już istnieje.', 'warning')
-            return redirect(url_for('main_routes.admin_panel'))
+            return redirect(url_for('admin_routes.admin_panel'))
         user = User(email=user_form.email.data)
         user.set_password(user_form.password.data)
         if user_form.is_admin.data:
@@ -234,7 +258,7 @@ def add_user():
         db.session.add(user)
         db.session.commit()
         flash('Dodawanie użytkownika przebiegło pomyślnie.')
-        return redirect(url_for('main_routes.admin_panel'))
+        return redirect(url_for('admin_routes.admin_panel'))
 
     users = get_all_users()
     meters = Meter.query.all()
@@ -324,7 +348,7 @@ def add_meter():
         db.session.add(meter)
         db.session.commit()
         flash('Licznik został dodany.')
-        return redirect(url_for('main_routes.admin_panel'))
+        return redirect(url_for('admin_routes.admin_panel'))
     return render_template('add_meter.html', form=form)
 
 
@@ -384,7 +408,7 @@ def delete_meters():
         db.session.rollback()
         flash('Wystąpił błąd podczas usuwania mierników i odczytów.', 'danger')
         print(f"Error deleting meters: {e}")
-    return redirect(url_for('main_routes.admin_panel'))
+    return redirect(url_for('admin_routes.admin_panel'))
 
 
 @main_routes.route('/delete_user/<int:user_id>', methods=['POST'])
@@ -403,7 +427,7 @@ def delete_user(user_id):
     db.session.commit()
 
     flash('Użytkownik został usunięty.', 'success')
-    return redirect(url_for('main_routes.admin_panel'))
+    return redirect(url_for('admin_routes.admin_panel'))
 
 
 @main_routes.route('/deactivate_user/<int:user_id>', methods=['POST'])
@@ -439,26 +463,32 @@ def update_user_notes(user_id):
 def messages():
     form = MessageForm()
 
-    if current_user.is_admin:
-        form.recipient.choices = [(user.id, user.email) for user in User.query.filter_by(is_admin=False)]
-    else:
-        form.recipient.choices = [(user.id, user.email) for user in User.query.filter_by(id=current_user.id)]
-
-    # Zerowanie wartości unread_messages użytkownika
-    if current_user.unread_messages > 0:
+    if request.form.get('mark_all_as_read'):
+        unread_messages = Message.query.filter_by(recipient_id=current_user.id, read=False).all()
+        for message in unread_messages:
+            message.read = True
         current_user.unread_messages = 0
         db.session.commit()
+        flash('Wszystkie wiadomości zostały oznaczone jako przeczytane.', 'success')
+
+    if current_user.is_admin:
+        form.recipient.choices = [(user.id, user.email) for user in User.query.filter(User.is_admin == False)]
+    else:
+        form.recipient.choices = [(current_user.id, current_user.email)]
 
     if form.validate_on_submit():
-        recipient_ids = form.recipient.data
+        recipient_ids = request.form.getlist('recipient')
         subject = form.subject.data
         content = form.content.data
 
         for recipient_id in recipient_ids:
-            message = Message(sender_id=current_user.id, recipient_id=recipient_id, subject=subject, content=content)
-            db.session.add(message)
-            recipient = User.query.get(recipient_id)
-            recipient.unread_messages += 1
+            recipient = User.query.get(int(recipient_id))
+            if recipient:
+                message = Message(sender_id=current_user.id, recipient_id=recipient.id, subject=subject, content=content)
+                db.session.add(message)
+                recipient.unread_messages += 1
+            else:
+                flash(f'Odbiorca o ID {recipient_id} nie istnieje.', 'danger')
 
         db.session.commit()
         flash('Wiadomość została wysłana!', 'success')
@@ -467,21 +497,27 @@ def messages():
     return render_template('messages.html', form=form)
 
 
+
 @main_routes.route('/message/<int:message_id>')
 @login_required
 def message(message_id):
-    message = Message.query.get(message_id)
+    message = Message.query.get_or_404(message_id)
+    if message.recipient_id == current_user.id and not message.read:
+        message.read = True
+        current_user.unread_messages -= 1
+        db.session.commit()
     return render_template('message.html', message=message)
 
 
 @main_routes.route('/delete_message/<int:message_id>')
 @login_required
 def delete_message(message_id):
-    message = Message.query.get(message_id)
-    if message:
-        db.session.delete(message)
-        db.session.commit()
-        flash('Wiadomość usunięta!', 'success')
+    message = Message.query.get_or_404(message_id)
+    if message.recipient_id == current_user.id and not message.read:
+        current_user.unread_messages -= 1
+    db.session.delete(message)
+    db.session.commit()
+    flash('Wiadomość usunięta!', 'success')
     return redirect(url_for('main_routes.messages'))
 
 
@@ -759,6 +795,79 @@ def add_multiple_users():
     db.session.commit()
     return render_template('user_summary.html', users=user_data)
 
-def generate_random_password():
-    chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    return ''.join(random.choice(chars) for _ in range(8))
+
+
+
+
+@main_routes.route('/edit_meter/<int:meter_id>', methods=['GET', 'POST'])
+@login_required
+def edit_meter(meter_id):
+    if not current_user.is_admin:
+        flash('Brak uprawnień do edycji licznika.', 'danger')
+        return redirect(url_for('main_routes.home'))
+
+    meter = Meter.query.get_or_404(meter_id)
+    readings = MeterReading.query.filter_by(meter_id=meter.id).order_by(MeterReading.date).all()
+
+    if request.method == 'POST':
+        new_radio_number = request.form.get('new_radio_number')
+        reading_ids_to_delete = request.form.getlist('reading_ids')
+        delete_duplicates = request.form.get('delete_duplicates')
+
+        # Aktualizacja numeru radiowego
+        if new_radio_number and new_radio_number != meter.radio_number:
+            old_radio_number = meter.radio_number
+            meter.radio_number = new_radio_number
+            # Dodaj wpis do historii edycji
+            new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id, edit_type='Change Radio Number', edit_details=f'Changed from {old_radio_number} to {new_radio_number}')
+            db.session.add(new_history_entry)
+
+        # Usuwanie wybranych odczytów
+        for reading_id in reading_ids_to_delete:
+            reading = MeterReading.query.get(int(reading_id))
+            if reading:
+                db.session.delete(reading)
+                # Dodaj wpis do historii edycji
+                new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id, edit_type='Delete Reading', edit_details=f'Deleted reading of {reading.date}')
+                db.session.add(new_history_entry)
+
+        # Edycja wartości odczytu
+        for reading in readings:
+            new_reading_value = request.form.get(f'reading_value_{reading.id}')
+            if new_reading_value and new_reading_value != str(reading.reading):
+                old_reading_value = reading.reading
+                reading.reading = float(new_reading_value)
+                # Dodaj wpis do historii edycji
+                new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id, edit_type='Edit Reading', edit_details=f'Changed reading of {reading.date} from {old_reading_value} to {new_reading_value}')
+                db.session.add(new_history_entry)
+
+        # Usuwanie duplikatów
+        if delete_duplicates:
+            unique_dates = set()
+            for reading in readings:
+                if reading.date in unique_dates:
+                    db.session.delete(reading)
+                    # Dodaj wpis do historii edycji
+                    new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id, edit_type='Delete Duplicate', edit_details=f'Deleted duplicate reading of {reading.date}')
+                    db.session.add(new_history_entry)
+                else:
+                    unique_dates.add(reading.date)
+
+        db.session.commit()
+        flash('Zmiany zostały zapisane.', 'success')
+        return redirect(url_for('main_routes.meter_details', meter_id=meter.id))
+
+    return render_template('edit_meter.html', meter=meter, readings=readings)
+
+
+
+@main_routes.route('/meter_history/<int:meter_id>')
+@login_required
+def meter_history(meter_id):
+    meter = Meter.query.get_or_404(meter_id)
+    if not (current_user.is_admin or current_user.id == meter.user_id or (current_user.is_superuser and current_user.id == meter.superuser_id)):
+        flash('Brak uprawnień do wyświetlenia historii tego licznika.', 'danger')
+        return redirect(url_for('main_routes.home'))
+
+    history = MeterEditHistory.query.filter_by(meter_id=meter_id).order_by(MeterEditHistory.timestamp.desc()).all()
+    return render_template('meter_history.html', history=history, meter=meter)

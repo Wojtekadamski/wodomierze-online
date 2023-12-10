@@ -57,9 +57,9 @@ window.onresize = adjustMargin;
             <div class="form-inline my-2 my-lg-0">
                 {% if current_user.is_authenticated %}
                 {% if current_user.is_admin %}
-                <p><a href="{{ url_for('main_routes.upload_csv') }} " class="btn btn-warning">Prześlij plik</a></p>
+                <p><a href="{{ url_for('admin_routes.upload_csv') }} " class="btn btn-warning">Prześlij plik</a></p>
                     <p><a href="{{ url_for('main_routes.generate_report') }} " class="btn btn-warning">Generuj raport</a></p>
-                    <p><a href="{{ url_for('main_routes.admin_panel') }} " class="btn btn-warning">Panel Administratora</a></p>
+                    <p><a href="{{ url_for('admin_routes.admin_panel') }} " class="btn btn-warning">Panel Administratora</a></p>
                     <p><a href="{{ url_for('main_routes.messages') }}" class="btn btn-warning">Wyślij wiadodmość</a></p>
                 {% endif %}
                  {% if current_user.is_superuser %}

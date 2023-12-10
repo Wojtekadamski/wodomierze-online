@@ -126,6 +126,18 @@ class Address(db.Model):
     postal_code = db.Column(db.String(20), nullable=True)
 
 
+class MeterEditHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    meter_id = db.Column(db.Integer, db.ForeignKey('meter.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    edit_type = db.Column(db.String(50), nullable=False)
+    edit_details = db.Column(db.String(255))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<MeterEditHistory {self.id}>'
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))

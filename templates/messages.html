@@ -8,6 +8,10 @@
 {% block content %}
     <a href="{{ url_for('main_routes.home') }} " class="btn btn-secondary no-print">Powrót</a>
   <h1>Wiadomości</h1>
+    <form method="POST" action="{{ url_for('main_routes.messages') }}">
+    <input type="hidden" name="mark_all_as_read" value="true">
+    <button type="submit" class="btn btn-primary">Oznacz wszystkie jako przeczytane</button>
+</form>
   <div class="row">
     {% if current_user.is_admin %}
       <div class="col-md-6">
@@ -53,14 +57,7 @@
           <input type="text" id="sender-filter" class="form-control" placeholder="Search by sender email">
         </div>
       </div>
-      <div id="sender-list" style="max-height: 100px; overflow-y: auto;">
-        {% for message in current_user.received_messages %}
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" name="sender" value="{{ message.sender.email }}" id="sender-{{ message.sender.email }}">
-            <label class="form-check-label" for="sender-{{ message.sender.email }}">{{ message.sender.email }}</label>
-          </div>
-        {% endfor %}
-      </div>
+
       <table class="table">
         <thead>
           <tr>
