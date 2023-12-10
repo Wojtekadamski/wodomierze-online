@@ -734,7 +734,7 @@ def display_report():
     translated_month_names = [english_to_polish_months.get(month.split()[0], month.split()[0]) + ' ' + month.split()[1]
                               for month in translated_month_names]
 
-    print(report_data)
+
     return render_template('display_report.html', report_data=report_data,translated_month_names=translated_month_names, report_period=report_period,
                            end_date=end_date, relativedelta=relativedelta,report_start_date=report_start_date.strftime('%Y-%m-%d'), report_end_date=report_end_date.strftime('%Y-%m-%d'), unique_emails=unique_emails)
 

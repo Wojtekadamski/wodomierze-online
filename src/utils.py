@@ -131,8 +131,17 @@ def process_csv_water(file_path):
                         date = datetime(int(year_str), month_num, 1)
                         reading_value = row.get(column)
                         if not pd.isna(reading_value):
-                            reading = MeterReading(date=date, reading=reading_value, meter_id=meter.id)
-                            db.session.add(reading)
+                            # Sprawdź, czy pomiar już istnieje
+                            existing_reading = MeterReading.query.filter_by(
+                                date=date, meter_id=meter.id).first()
+
+                            if existing_reading:
+                                # Aktualizuj istniejący pomiar
+                                existing_reading.reading = reading_value
+                            else:
+                                # Dodaj nowy pomiar
+                                reading = MeterReading(date=date, reading=reading_value, meter_id=meter.id)
+                                db.session.add(reading)
 
                     if not meter.address:
                         address = Address(street=street_value, building_number=building_value,
