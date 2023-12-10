@@ -58,3 +58,143 @@
 .signature:hover {
     text-decoration: underline;
 }
+
+.report-table-container {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .report-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .report-table th, .report-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    .report-table th {
+        background-color: #f2f2f2;
+    }
+
+    .odd-row {
+        background-color: #f9f9f9;
+    }
+
+    .even-row {
+        background-color: #fff;
+    }
+
+    .report-actions {
+        margin-bottom: 20px;
+    }
+
+    .report-actions button {
+        margin-right: 10px;
+        padding: 5px 15px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .report-actions button:hover {
+        background-color: #45a049;
+    }
+
+    .table-responsive {
+    overflow-x: auto;
+}
+
+    .user-list-r {
+    margin-top: 20px;
+    max-width: 400px;
+    max-height: 600px; /* Możesz dostosować tę wartość do swoich potrzeb */
+    overflow-y: auto; /* Umożliwia przewijanie pionowe, gdy zawartość przekracza maksymalną wysokość */
+    border: 1px solid #ccc; /* Opcjonalnie, dla lepszej widoczności */
+    padding: 10px;
+    border-radius: 5px; /* Zaokrąglenie rogów */
+    background-color: #f9f9f9; /* Tło listy */
+}
+
+.user-entry {
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.user-header {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    background-color: white;
+    padding: 5px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+}
+
+.user-header .toggle-meters {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.meter-list {
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.meter-entry {
+    margin-bottom: 5px;
+    background-color: white;
+    padding: 5px;
+    border-radius: 8px;
+}
+
+/* Styl dla kontenera wykresu */
+#reportChart {
+    width: 100%;
+    max-width: 800px; /* Możesz dostosować szerokość do swoich potrzeb */
+    margin: auto;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtelny cień dla kontenera */
+    background-color: #fff; /* Białe tło dla lepszej czytelności */
+    border-radius: 8px; /* Zaokrąglone rogi */
+}
+
+/* Styl dla tytułu wykresu */
+.plotly .main-svg .title {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    color: #333;
+}
+
+/* Styl dla legendy wykresu */
+.plotly .legend {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Styl dla osi wykresu */
+.plotly .axis {
+    font-size: 12px;
+    color: #333;
+}
+
+/* Styl dla linii wykresu */
+.plotly .scatterlayer .trace .lines {
+    stroke-width: 2px; /* Grubsze linie dla lepszej widoczności */
+}
+
+/* Styl dla punktów na wykresie */
+.plotly .scatterlayer .trace .points .point {
+    stroke: #fff; /* Białe obramowanie punktów */
+    stroke-width: 1.5px;
+}

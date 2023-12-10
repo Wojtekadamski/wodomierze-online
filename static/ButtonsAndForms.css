@@ -33,3 +33,11 @@
 .collapse.show + .toggle-button .toggle-icon {
     transform: rotate(180deg);
 }
+
+.btn-primary{
+    margin: 5px;
+}
+.btn-secondary{
+    margin: 5px;
+}
+

@@ -1,9 +1,9 @@
 .navbar {
-    z-index: 10000;
-    position: fixed;
-    top: 0px;
-    width: 100%;
-    overflow: hidden;
+   z-index: 10000;
+   position: fixed;
+   top: 0px;
+   width: 100%;
+	overflow: hidden;
 }
 
 .navbar .btn {
@@ -41,14 +41,21 @@
     padding: 20px;
 }
 
-.footer {
-    margin-top: 1%;
+.footer{
+	margin-left: 17.5%;
+	background-color: hsl(192, 85%, 23%);
+	border-radius: 10px;
+	opacity: 0.97;
+	width: 70%;
+	align-items: center;
+	padding: 20px;
+	margin-top: 1%;
 }
 
-.scroll-bar {
-    height: 40%;
-    overflow: hidden;
-    overflow-y: scroll;
+.scroll-bar{
+	height:40%;
+	overflow:hidden;
+	overflow-y:scroll;
 }
 
 .limited-list {
@@ -77,4 +84,13 @@
     display: block;
     width: 100%;
     margin-bottom: 10px;
+}
+
+    .signature {
+    color: inherit; /* Dziedziczy kolor tekstu, w którym się znajduje */
+    text-decoration: none; /* Usuwa domyślne podkreślenie linku */
+}
+
+.signature:hover {
+    text-decoration: underline; /* Dodaje podkreślenie po najechaniu myszką */
 }
