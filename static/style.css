@@ -55,6 +55,10 @@ h1,h2,h3,h4,h5,h6{
 	display: inline-block;
 	padding: 5px;
 }
+.form-group {
+    display: block;
+    width: 100%;
+}
 
 .cart-row{
 	display: flex;
@@ -205,6 +209,7 @@ h1,h2,h3,h4,h5,h6{
 	height: 70%;
 	vertical-align: top;
 	margin-left: 5%;
+    display: block;
 }
 
 .left-box{
