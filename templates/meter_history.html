@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='meter_history.css')}}">
+{% endblock extra_css %}
+{% block content %}
+    <button class="btn btn-secondary no-print" onclick="goBack()">Powrót</button>
+<div class="edit-container">
+    <h2>Historia Edycji Licznika: {{ meter.radio_number }}</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Data i czas</th>
+                <th>Typ edycji</th>
+                <th>Szczegóły</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in history %}
+            <tr>
+                <td>{{ entry.timestamp }}</td>
+                <td>{{ entry.edit_type }}</td>
+                <td>{{ entry.edit_details }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    <script>
+    function goBack() {
+            window.history.back();
+        }
+
+    </script>
+{% endblock %}
