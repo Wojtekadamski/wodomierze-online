@@ -26,5 +26,6 @@ app.register_error_handler(NotFound, handle_not_found_error)
 app.register_error_handler(Forbidden, handle_forbidden_error)
 app.register_error_handler(Unauthorized, handle_unauthorized_error)
 
+
 if __name__ == '__main__':
     app.run()
