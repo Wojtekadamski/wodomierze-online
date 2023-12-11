@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='edit_meter_styles.css')}}">
+{% endblock extra_css %}
+
+{% block content %}
+<div class="edit-meter-container ">
+    <form method="post" action="{{ url_for('main_routes.edit_meter', meter_id=meter.id) }}">
+        <div class="form-group">
+            <label for="new_radio_number">Nowy numer radiowy:</label>
+            <input type="text" id="new_radio_number" name="new_radio_number" class="form-control" value="{{ meter.radio_number }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+    </form>
+
+    <h3>Odczyty</h3>
+<div class="table-responsive">
+    <form method="post" action="{{ url_for('main_routes.edit_meter', meter_id=meter.id) }}">
+        <table>
+        <tr>
+            <th>Zaznacz</th>
+            <th>Data</th>
+            <th>Odczyt</th>
+            <th>Edytuj odczyt</th>
+        </tr>
+        {% for reading in readings %}
+        <tr>
+            <td><input type="checkbox" name="reading_ids" value="{{ reading.id }}"></td>
+            <td>{{ reading.date }}</td>
+            <td>{{ reading.reading }}</td>
+            <td><input type="text" name="reading_value_{{ reading.id }}" value="{{ reading.reading }}"></td>
+        </tr>
+        {% endfor %}
+    </table>
+        <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+    </form>
+</div>
+</div>
+{% endblock %}

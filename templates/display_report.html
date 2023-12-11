@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% block extra_css %}
  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='ReportStyles.css')}}">
- <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='MediaQueries.css')}}">
+ <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}">
+
 
 {% endblock extra_css %}
 {% block content %}
@@ -48,8 +49,157 @@
     {% endfor %}
 </table>
 </div>
+<button id="showChartBtn" class="btn btn-primary no-print" style="display: none;">Pokaż wykres</button>
+<button id="hideChartBtn" class="btn btn-primary no-print">Ukryj wykres</button>
+
+<!-- Kontener na wykres -->
+<div id="reportChart" style="width:inherit;height: 100%" ></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var reportData = {{ report_data | tojson | safe }};
+    drawChart(reportData);
+
+    // Obsługa przycisków do pokazywania/ukrywania wykresu
+    var showChartBtn = document.getElementById('showChartBtn');
+    var hideChartBtn = document.getElementById('hideChartBtn');
+    var chartContainer = document.getElementById('reportChart');
+
+    showChartBtn.addEventListener('click', function() {
+        chartContainer.style.display = 'block';
+        showChartBtn.style.display = 'none';
+        hideChartBtn.style.display = 'block';
+        drawChart(reportData); // Rysuj wykres ponownie, aby dostosować do widocznej przestrzeni
+    });
+
+    hideChartBtn.addEventListener('click', function() {
+        chartContainer.style.display = 'none';
+        showChartBtn.style.display = 'block';
+        hideChartBtn.style.display = 'none';
+    });
+
+    window.onresize = function() {
+        if (chartContainer.style.display !== 'none') {
+            drawChart(reportData);
+        }
+    };
+});
+</script>
+<script>
+const monthNames = {
+    'Styczeń': '01',
+    'Luty': '02',
+    'Marzec': '03',
+    'Kwiecień': '04',
+    'Maj': '05',
+    'Czerwiec': '06',
+    'Lipiec': '07',
+    'Sierpień': '08',
+    'Wrzesień': '09',
+    'Październik': '10',
+    'Listopad': '11',
+    'Grudzień': '12'
+};
+
+function convertMonthNameToISO(monthYear) {
+    const [month, year] = monthYear.split(' ');
+    return `${year}-${monthNames[month]}`;
+}
+
+function sortDataByDate(data) {
+    return data.sort((a, b) => {
+        return new Date(a.date) - new Date(b.date);
+    });
+}
+
+function drawChart(reportData) {
+    var traceData = [];
+    var baseHeight = 300; // Podstawowa wysokość
+    var additionalHeightPerTrace = 50
+
+    reportData.forEach(function(dataEntry) {
+        var dataWithDates = [];
+
+        // Przejście przez miesiące i zbieranie danych wraz z datami
+        for (var monthName in dataEntry) {
+            if (dataEntry.hasOwnProperty(monthName) && monthName !== 'user_email' && monthName !== 'meter_number' && monthName !== 'meter_address' && monthName !== 'meter_type') {
+                var dateISO = convertMonthNameToISO(monthName);
+                dataWithDates.push({ date: dateISO, value: dataEntry[monthName] });
+            }
+        }
+
+        // Sortowanie danych według daty
+        var sortedData = sortDataByDate(dataWithDates);
+
+        var xValues = sortedData.map(item => item.date);
+        var yValues = sortedData.map(item => item.value);
+        var meterLabel = dataEntry.meter_number; // lub inny unikalny identyfikator licznika
+
+        // Tworzenie serii danych dla każdego licznika
+        var trace = {
+            x: xValues,
+            y: yValues,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: meterLabel
+        };
+        traceData.push(trace);
+    });
+
+    var calculatedHeight = baseHeight + (traceData.length * additionalHeightPerTrace);
+
+    // Pobierz szerokość kontenera 'center-box'
+    var centerBox = document.querySelector('.center-box');
+    var centerBoxWidth = centerBox.offsetWidth - 50;
+
+    // Ogranicz maksymalną wysokość wykresu
+    var maxHeight = window.innerWidth < 1000 ? 1 * centerBoxWidth : calculatedHeight;
+    calculatedHeight = Math.min(calculatedHeight, maxHeight);
+
+    // Ustawianie wysokości kontenera wykresu
+    var chartContainer = document.getElementById('reportChart');
+    chartContainer.style.height = calculatedHeight + 'px';
+
+    var layout = {
+        title: '',
+        xaxis: {
+            title: 'Miesiąc',
+            type: 'date'
+        },
+        yaxis: {
+            title: 'Wartość'
+        },
+        autosize: false,
+        height:calculatedHeight,
+        responsive: true
+    };
+    if (window.innerWidth < 1280) {
+        layout.width = centerBoxWidth -130;
+    }
 
 
+    Plotly.newPlot('reportChart', traceData, layout);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var reportData = {{ report_data | tojson | safe }};
+    drawChart(reportData);
+
+    window.onresize = function() {
+        drawChart(reportData);
+    };
+});
+
+
+
+
+
+
+
+
+
+
+</script>
 
  <script>
     // Funkcja do konwersji danych na format CSV

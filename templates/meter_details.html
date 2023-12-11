@@ -11,6 +11,11 @@
 <button class="btn btn-secondary no-print" onclick="goBack()">Powrót</button>
 
 <h2>Szczegóły licznika</h2>
+    <a href="{{ url_for('main_routes.meter_history', meter_id=meter.id) }}" class="btn btn-info">Wyświetl historię</a>
+
+    {% if current_user.is_admin %}
+    <a href="{{ url_for('main_routes.edit_meter', meter_id=meter.id) }}" class="btn btn-primary no-print">Edytuj licznik</a>
+{% endif %}
 <p>Numer radiowy: {{ meter.radio_number }}</p>
 {% if meter.address %}
     <p>Adres: {% if meter.address.city != None %} {{ meter.address.city }},{% endif %} {% if meter.address.street != None %} Ul.{{ meter.address.street }} {{ meter.address.building_number }} {% if meter.address.apartment_number %} {% if meter.address.apartment_number != None %}/{{ meter.address.apartment_number }}
@@ -83,12 +88,16 @@
 <button id="print-pdf-button" class="btn btn-primary no-print" onclick="window.print()">Drukuj to PDF</button>
 <br />
 <br />
-<button id="line-chart-button" onclick="showChart('line')">wykres liniowy</button>
-<button id="bar-chart-button" onclick="showChart('bar')">wykres słupkowy</button>
-<button id="table-button" onclick="showTable()">tabela</button>
+
+<button id="line-chart-button" class="no-print" onclick="showChart('line')">wykres liniowy</button>
+<button id="bar-chart-button" class="no-print" onclick="showChart('bar')">wykres słupkowy</button>
+<button id="table-button" class="no-print" onclick="showTable()">tabela</button>
 
 <div id="chart-container"></div>
 <div id="table-container"></div>
+
+
+
 <!--- Skrypt do rysowania wykresów --->
    <script>
     var readings = {{ readings|tojson }};

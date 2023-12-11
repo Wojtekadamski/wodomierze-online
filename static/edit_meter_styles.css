@@ -1,0 +1,48 @@
+.edit-meter-container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.edit-meter-container h2, h3 {
+    text-align: center;
+}
+
+.edit-meter-container form {
+    margin-bottom: 20px;
+}
+
+.edit-meter-container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.edit-meter-container th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.edit-meter-container th {
+    background-color: #f2f2f2;
+}
+
+.edit-meter-container td {
+    background-color: #fff;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
