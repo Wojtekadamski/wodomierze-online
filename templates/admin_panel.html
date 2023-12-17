@@ -42,7 +42,7 @@
     <h3 class="d-none d-lg-block">Lista liczników</h3>
     <div class="collapse" id="meterListCollapse">
 
-    <input type="text" id="search-meter-input" style="width: 320px" placeholder="Wyszukaj według numeru radiowego" >
+        <input type="text" id="search-meter-input" style="width: 320px" placeholder="Wyszukaj według numeru radiowego" ><inp
     <ul class="user-list limited-list" style="width: 320px"  id="meter-list">
         {% for meter in meters %}
             <li class="meter-item">
@@ -51,9 +51,7 @@
         {% endfor %}
     </ul>
     </div>
-<form method="POST" action="{{ url_for('main_routes.delete_meters') }}">
-    <button type="submit" class="btn btn-danger">Usuń wszystkie mierniki i odczyty</button>
-</form>
+
    </div>
 <div class="right-box user-overview-container">
 
