@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='view_issues.css')}}">
+{% endblock extra_css %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-3">Nierozwiązane zgłoszenia</h2>
+    <form action="{{ url_for('main_routes.mark_all_issues_resolved') }}" method="post" class="mb-3">
+        <button type="submit" class="btn btn-primary">Oznacz wszystkie jako przeczytane</button>
+    </form>
+
+    <section>
+    <h3>Nierozwiązane zgłoszenia</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Odczyt</th>
+                <th>Opis</th>
+                <th>Data zgłoszenia</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issue in unresolved_issues %}
+            <tr>
+                <td>{{ meter_readings[issue.meter_reading_id].meter.radio_number }} - {{ meter_readings[issue.meter_reading_id].date }}</td>
+                <td>{{ issue.description }}</td>
+                <td>{{ issue.timestamp }}</td>
+                <td><a href="{{ url_for('main_routes.reply_to_issue', issue_id=issue.id) }}" class="btn btn-primary">Odpowiedz</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section>
+    <h3>Rozwiązane zgłoszenia</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Odczyt</th>
+                <th>Opis</th>
+                <th>Data zgłoszenia</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for issue in resolved_issues %}
+            <tr>
+                <td>{{ meter_readings[issue.meter_reading_id].meter.radio_number }} - {{ meter_readings[issue.meter_reading_id].date }}</td>
+                <td>{{ issue.description }}</td>
+                <td>{{ issue.timestamp }}</td>
+                <td><a href="{{ url_for('main_routes.issue_details', issue_id=issue.id) }}" class="btn btn-info">Szczegóły</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+</div>
+{% endblock %}

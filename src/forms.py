@@ -99,3 +99,18 @@ class AssignMeterToUserForm(FlaskForm):
         self.user_id.choices = [(u.id, u.email) for u in User.query.filter_by(superuser_id=superuser_id).all()]
         self.meter_id.choices = [(m.id, m.radio_number) for m in
                                  Meter.query.filter_by(owned_by_superuser=superuser_id).all()]
+
+
+class ReportIssueForm(FlaskForm):
+    meter_reading = SelectField('Odczyt', coerce=int)
+    suggested_reading = StringField('Sugerowany odczyt', validators=[DataRequired()])
+    description = TextAreaField('Opis', validators=[DataRequired()])
+    submit = SubmitField('Zgłoś')
+
+class ReplyForm(FlaskForm):
+    content = TextAreaField('Treść odpowiedzi', validators=[DataRequired()])
+    submit = SubmitField('Wyślij')
+
+class EditReadingForm(FlaskForm):
+    new_reading = FloatField('Nowy odczyt', validators=[DataRequired()])
+    submit = SubmitField('Zapisz zmiany')

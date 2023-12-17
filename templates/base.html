@@ -38,7 +38,7 @@ window.onload = adjustMargin;
 window.onresize = adjustMargin;
 </script>
 
-    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark">
     <a class="navbar-brand" href="{{ url_for('main_routes.home') }}"><img src="{{ url_for('static', filename='img/Zdalny_Odczyt_RGB.png') }}" alt="Logo" class="logo">
         </a>
     {% if current_user.is_authenticated %}
@@ -47,7 +47,7 @@ window.onresize = adjustMargin;
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
 </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-collapse" style="overflow-y: hidden" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item active">
                     <a class="nav-link" href="{{ url_for('main_routes.home') }}">  <span class="sr-only">(current)</span></a>
@@ -65,6 +65,17 @@ window.onresize = adjustMargin;
                  {% if current_user.is_superuser %}
                      <p><a href="{{ url_for('main_routes.superuser_panel') }} " class="btn btn-warning">Panel Zarządzania</a></p>
                      <p><a href="{{ url_for('main_routes.generate_report') }} " class="btn btn-warning">Generuj raport</a></p>
+                     {% if current_user.is_authenticated and current_user.is_superuser %}
+    {% if current_user.is_authenticated and current_user.is_superuser %}
+
+        <p><a href="{{ url_for('main_routes.view_issues') }}" class="btn btn-warning">Zgłoszenia
+            {% if unresolved_issues_count > 0 %}
+                <span class="badge badge-danger">{{ unresolved_issues_count }}</span>
+            {% endif %}
+        </a></p>
+
+{% endif %}
+{% endif %}
                  {% endif %}
                 <p class="navbar-brand">     </p>
 

@@ -1,6 +1,9 @@
+import os
+
 from flask import Flask, flash, redirect, url_for
 from flask_migrate import Migrate
 from werkzeug.exceptions import InternalServerError, NotFound, Forbidden, Unauthorized
+from flask_jwt_extended import JWTManager
 
 from src.config import Config
 from src.error_handlers import handle_internal_server_error, handle_not_found_error, handle_forbidden_error, \
@@ -10,6 +13,8 @@ from src.routes import main_routes, admin_routes, superuser_routes, user_routes
 
 app = Flask(__name__, static_url_path='', static_folder='static', template_folder='templates')
 app.config.from_object(Config)
+app.config['JWT_SECRET_KEY'] = os.environ.get('SECRET_KEY')
+jwt = JWTManager(app)
 migrate = Migrate(app, db)
 db.init_app(app)
 with app.app_context():

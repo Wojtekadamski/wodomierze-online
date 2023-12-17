@@ -1,16 +1,52 @@
 .user-list, .meter-list, .free-user-list {
     list-style-type: none;
-    margin-left: 10px;
+    margin-left: 0; /* Adjusted to align with the new style */
     padding: 0;
 }
 
 .user-item, .meter-item, .free-user-item {
     border: 1px solid #ccc;
-    margin-bottom: 10px;
-    padding: 10px;
+    margin-bottom: 2px;
+    padding: 2px;
     background-color: #f9f9f9;
+}
+
+.user-item a, .meter-item a, .free-user-item a { /* Style links directly */
+    display: block; /* Makes the entire list item clickable */
+    text-decoration: none; /* Removes underline from links */
+    color: hsl(200, 30%, 20%); /* A dark blue color for text */
+    background-color: hsl(200, 100%, 98%); /* A very light blue for the background */
+    border: 1px solid hsl(200, 30%, 80%); /* A soft blue border */
+    border-radius: 5px; /* Rounded corners for elegance */
+    margin-bottom: 8px; /* Spacing between items */
+    padding: 2px; /* Padding for clickable area */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+    width: 100%; /*
+}
+
+.user-item a:hover, .meter-item a:hover, .free-user-item a:hover {
+    background-color: hsl(200, 50%, 90%); /* Lighter blue on hover */
+    color: hsl(200, 100%, 30%); /* A slightly darker blue for text on hover */
+    border-color: hsl(200, 50%, 75%); /* Darker border on hover */
+    transform: translateY(-2px); /* Slight raise effect on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
 }
 
 .free-user-item:last-child {
     border-bottom: none;
 }
+
+.collapse {
+    max-height: 600px; /* Maksymalna wysokość dla zwiniętej listy */
+    overflow-y: scroll; /* Umożliwia przewijanie, jeśli zawartość przekracza maksymalną wysokość */
+    transition: max-height 0.4s ease; /* Animacja zwijania i rozwijania */
+}
+
+.collapse.show {
+    max-height: 600px; /* Maksymalna wysokość po rozwinięciu */
+    width: 400px;
+}
+
+#userListCollapse, #meterListCollapse {
+        max-height: 600px; /* Zwiększamy maksymalną wysokość dla widoków mobilnych */
+    }

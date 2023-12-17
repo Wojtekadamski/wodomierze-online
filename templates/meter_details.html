@@ -12,6 +12,7 @@
 
 <h2>Szczegóły licznika</h2>
     <a href="{{ url_for('main_routes.meter_history', meter_id=meter.id) }}" class="btn btn-info">Wyświetl historię</a>
+<a href="{{ url_for('main_routes.report_issue', meter_id=meter.id) }}" class="btn btn-danger">Zgłoś problem</a>
 
     {% if current_user.is_admin %}
     <a href="{{ url_for('main_routes.edit_meter', meter_id=meter.id) }}" class="btn btn-primary no-print">Edytuj licznik</a>

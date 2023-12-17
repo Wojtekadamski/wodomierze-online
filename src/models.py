@@ -138,6 +138,17 @@ class MeterEditHistory(db.Model):
         return f'<MeterEditHistory {self.id}>'
 
 
+class MeterReadingIssue(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    meter_reading_id = db.Column(db.Integer, nullable=False)  # Zmienione, bez db.ForeignKey
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    resolved = db.Column(db.Boolean, default=False)
+
+    # Usunięto relację z MeterReading
+    user = db.relationship('User', backref='reported_issues')
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))

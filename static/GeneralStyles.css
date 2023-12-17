@@ -1,6 +1,7 @@
 body {
-    background-image: url('img/background.png');
+    background-image: url('img/background_2.png');
     background-attachment: fixed;
+    color: hsl(200, 15%, 8%);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -8,10 +9,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .box-element {
-    box-shadow: hsl(0, 0%, 80%) 0 0 16px;
-    background-color: #fff;
+    box-shadow: 0 0 16px hsl(200, 25%, 80%);
+    background-color: hsl(0, 0%, 100%);
     border-radius: 4px;
     padding: 10px;
+
 }
 
 .thumbnail {
@@ -27,7 +29,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .bg-dark {
-    background-color: #19a0a0 !important;
+    background-color: hsl(200, 20%, 20%);
 }
 
 #cart-icon {
@@ -43,6 +45,8 @@ h1, h2, h3, h4, h5, h6 {
 .btn {
     border-radius: 5px;
     margin-inline: 10px;
+    background-color: hsl(200, 100%, 30%);
+    color: hsl(0, 0%, 100%);
 }
 
 .row-image {
@@ -83,4 +87,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .hidden {
     display: none!important;
+}
+
+.navbar-brand{
+    margin:0;
+    padding:0;
 }

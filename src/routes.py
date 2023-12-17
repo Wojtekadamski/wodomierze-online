@@ -7,11 +7,17 @@ from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from src.config import UPLOAD_FOLDER, EMAIL_KEY
 from src.forms import LoginForm, MeterForm, UploadForm, UserForm, EditAccountForm, \
-    UserNotesForm, UserOverviewForm, MessageForm, AssignMeterToSuperuserForm, AssignMeterToUserForm
-from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address, MeterEditHistory
+    UserNotesForm, UserOverviewForm, MessageForm, AssignMeterToSuperuserForm, AssignMeterToUserForm, ReportIssueForm, \
+    ReplyForm, EditReadingForm
+from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address, MeterEditHistory, \
+    MeterReadingIssue
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events, \
     superuser_required, create_report_data, generate_random_password
+from flask_jwt_extended import create_access_token
+from flask import g
+
+
 
 main_routes = Blueprint('main_routes', __name__)
 admin_routes = Blueprint('admin_routes', __name__)
@@ -33,11 +39,13 @@ def home():
         if current_user.is_admin:
             return redirect(url_for("admin_routes.admin_panel"))
         if current_user.is_superuser:
-            return redirect(url_for("main_routes.superuser_panel"))
+            unresolved_issues_count = MeterReadingIssue.query.filter_by(resolved=False).count()
+            return render_template('home.html', unresolved_issues_count=unresolved_issues_count)
         user = current_user
         assigned_meters = user.meters
         return render_template('home.html', assigned_meters=assigned_meters)
     return redirect(url_for('main_routes.login'))
+
 
 
 @main_routes.route('/login', methods=['GET', 'POST'])
@@ -62,6 +70,13 @@ def login():
 
     return render_template('login.html', form=form)
 
+
+@main_routes.context_processor
+def inject_unresolved_issues_count():
+    if current_user.is_authenticated and current_user.is_superuser:
+        unresolved_issues_count = MeterReadingIssue.query.filter_by(resolved=False).count()
+        return {'unresolved_issues_count': unresolved_issues_count}
+    return {}
 
 @main_routes.route('/logout')
 def logout():
@@ -871,3 +886,104 @@ def meter_history(meter_id):
 
     history = MeterEditHistory.query.filter_by(meter_id=meter_id).order_by(MeterEditHistory.timestamp.desc()).all()
     return render_template('meter_history.html', history=history, meter=meter)
+
+
+@main_routes.route('/report_issue', methods=['GET', 'POST'])
+@login_required
+def report_issue():
+    form = ReportIssueForm()
+    form.meter_reading.choices = [(reading.id, f"{reading.meter.radio_number} - {reading.date}")
+                                  for reading in MeterReading.query.join(Meter).filter(Meter.user_id == current_user.id).all()]
+
+    if form.validate_on_submit():
+        issue = MeterReadingIssue(
+            meter_reading_id=form.meter_reading.data,
+            user_id=current_user.id,
+            description=form.description.data
+        )
+        db.session.add(issue)
+
+        # Dodaj wpis do historii edycji miernika
+        reading = MeterReading.query.get(form.meter_reading.data)
+        history_entry = MeterEditHistory(
+            meter_id=reading.meter_id,
+            user_id=current_user.id,
+            edit_type='Issue Reported',
+            edit_details=f'Issue reported: {form.description.data}'
+        )
+        db.session.add(history_entry)
+
+        db.session.commit()
+        flash('Zgłoszenie zostało wysłane.', 'success')
+        return redirect(url_for('main_routes.home'))
+
+    return render_template('report_issue.html', form=form)
+
+
+@main_routes.route('/superuser/issues')
+@login_required
+@superuser_required
+def view_issues():
+    unresolved_issues = MeterReadingIssue.query.filter_by(resolved=False).all()
+    resolved_issues = MeterReadingIssue.query.filter_by(resolved=True).all()
+    meter_readings = {issue.meter_reading_id: MeterReading.query.get(issue.meter_reading_id) for issue in unresolved_issues + resolved_issues}
+    return render_template('view_issue.html', unresolved_issues=unresolved_issues, resolved_issues=resolved_issues, meter_readings=meter_readings)
+
+
+@main_routes.route('/mark_all_issues_resolved', methods=['POST'])
+@superuser_required
+def mark_all_issues_resolved():
+    unresolved_issues = MeterReadingIssue.query.filter_by(resolved=False).all()
+    for issue in unresolved_issues:
+        issue.resolved = True
+    db.session.commit()
+    flash('Wszystkie zgłoszenia zostały oznaczone jako przeczytane.', 'success')
+    return redirect(url_for('main_routes.view_issues'))
+
+
+@main_routes.route('/reply_to_issue/<int:issue_id>', methods=['GET', 'POST'])
+@superuser_required
+def reply_to_issue(issue_id):
+    issue = MeterReadingIssue.query.get_or_404(issue_id)
+    meter_reading = MeterReading.query.get(issue.meter_reading_id)  # Pobierz odczyt licznika
+    form = ReplyForm()
+    edit_reading_form = EditReadingForm()
+
+    if form.validate_on_submit():
+        # Wysyłanie wiadomości do użytkownika
+        recipient = User.query.get(issue.user_id)
+        message = Message(sender_id=current_user.id, recipient_id=issue.user_id, subject="Odpowiedź na zgłoszenie", content=form.content.data)
+        db.session.add(message)
+        recipient.unread_messages += 1
+
+        # Dodaj wpis do historii edycji licznika
+        history_entry = MeterEditHistory(meter_id=meter_reading.meter_id, user_id=current_user.id,
+                                         edit_type='Odpowiedź na zgłoszenie', edit_details=f'Odpowiedziano na zgłoszenie: {form.content.data}')
+        db.session.add(history_entry)
+
+        issue.resolved = True
+        db.session.commit()
+        flash('Odpowiedź została wysłana.', 'success')
+        return redirect(url_for('main_routes.view_issues'))
+
+    if edit_reading_form.validate_on_submit():
+        # Logika edycji odczytu
+        meter_reading = MeterReading.query.get(issue.meter_reading_id)
+        if meter_reading:
+            meter_reading.reading = edit_reading_form.new_reading.data
+            db.session.commit()
+            flash('Odczyt został zaktualizowany.', 'success')
+        else:
+            flash('Nie znaleziono odczytu.', 'danger')
+
+    return render_template('reply_to_issue.html', form=form, issue=issue, edit_reading_form=edit_reading_form)
+
+
+@main_routes.route('/issue_details/<int:issue_id>')
+@superuser_required
+def issue_details(issue_id):
+    issue = MeterReadingIssue.query.get_or_404(issue_id)
+    meter_reading = MeterReading.query.get(issue.meter_reading_id)
+    response = Message.query.filter_by(subject="Odpowiedź na zgłoszenie", recipient_id=issue.user_id).first()
+
+    return render_template('issue_details.html', issue=issue, meter_reading=meter_reading, response=response)

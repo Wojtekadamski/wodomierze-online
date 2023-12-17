@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">Zgłoś problem z odczytem</h2>
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.meter_reading.label(class="form-label") }}
+                    {{ form.meter_reading(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.suggested_reading.label(class="form-label") }}
+                    {{ form.suggested_reading(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control") }}
+                </div>
+                <button type="submit" class="btn btn-danger">Zgłoś</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

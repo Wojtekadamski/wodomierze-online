@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4 text-center">Szczegóły zgłoszenia</h2>
+    <div class="card">
+        <div class="card-body">
+            <p><strong>Treść zgłoszenia:</strong> {{ issue.description }}</p>
+            <p><strong>Odpowiedź:</strong> {{ response.content if response else 'Brak odpowiedzi' }}</p>
+            <p><strong>Stary odczyt:</strong> {{ meter_reading.reading }}</p>
+            <p><strong>Nowy odczyt:</strong> {{ issue.new_reading if issue.new_reading else 'Nie zmieniono' }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

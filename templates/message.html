@@ -3,12 +3,22 @@
 {% block content %}
     <button class="btn btn-secondary" onclick="goBack()">Powrót</button>
 
-  <h1>Message</h1>
-  <p><strong>Subject:</strong> {{ message.subject }}</p>
-  <p><strong>From:</strong> {{ message.sender.email }}</p>
-  <p><strong>Date:</strong> {{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
-  <p><strong>Content:</strong></p>
-  <p>{{ message.content }}</p>
+  <div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Wiadomość</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong>Od:</strong> {{ message.sender.email }}</p>
+                    <p><strong>Temat:</strong> {{ message.subject }}</p>
+                    <p>{{ message.content }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
     <a href="{{ url_for('main_routes.delete_message', message_id=message.id) }}" class="btn btn-danger">Usuń wiadomość</a>
 

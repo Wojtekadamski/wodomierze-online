@@ -135,7 +135,7 @@
         </div>
         <button type="submit" class="btn btn-danger" onclick="return confirm('Czy na pewno chcesz usunąć tego użytkownika?')">Usuń Użytkownika</button>
     </form>
-    <br />
+
      <!-- Przycisk dezaktywacji użytkownika -->
     {% if user.is_active %}
         <form method="POST" action="{{ url_for('main_routes.deactivate_user', user_id=user.id) }}">

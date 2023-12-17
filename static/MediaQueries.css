@@ -41,7 +41,7 @@
     }
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 992px) {
     .center-box, .footer {
         margin-left: 0;
         width: 100%;
@@ -58,10 +58,27 @@
     .left-box, .right-box {
         width: 100%;
     }
+
+    #userListCollapse, #meterListCollapse {
+        max-height: 600px; /* Zwiększamy maksymalną wysokość dla widoków mobilnych */
+    }
+    .btn .btn-primary{
+        width: 100%;
+        margin: 5px;
+    }
 }
 
 @media (min-width: 992px) {
     #userListCollapse, #meterListCollapse {
         display: block !important;
     }
+    .collapse {
+        max-height: 600px; /* Maksymalna wysokość dla zwiniętej listy */
+    }
+
+    .collapse.show {
+        max-height: 600px; /* Maksymalna wysokość po rozwinięciu */
+        width: 400px;
+    }
 }
+

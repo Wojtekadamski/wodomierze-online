@@ -17,6 +17,9 @@
     <h3>Odczyty</h3>
 <div class="table-responsive">
     <form method="post" action="{{ url_for('main_routes.edit_meter', meter_id=meter.id) }}">
+    <button id="mark-duplicates-button" class="btn btn-warning">Zaznacz duplikaty</button>
+
+
         <table>
         <tr>
             <th>Zaznacz</th>
@@ -37,4 +40,40 @@
     </form>
 </div>
 </div>
+
+ <script>
+document.getElementById('mark-duplicates-button').addEventListener('click', function() {
+    const readings = {};
+    let duplicatesFound = false;
+
+    document.querySelectorAll('table tr').forEach(row => {
+        const dateCell = row.querySelector('td:nth-child(2)');
+        if (dateCell) {
+            const date = dateCell.textContent.trim();
+            if (!readings[date]) {
+                readings[date] = [];
+            }
+            readings[date].push(row);
+        }
+    });
+
+    Object.values(readings).forEach(rows => {
+        if (rows.length > 1) {
+            duplicatesFound = true;
+            // Zaznacz wszystkie checkboxy oprócz ostatniego wiersza dla tej samej daty
+            rows.slice(0, -1).forEach(duplicateRow => {
+                const checkbox = duplicateRow.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
+        }
+    });
+
+    if (!duplicatesFound) {
+        alert("Nie znaleziono duplikatów.");
+    }
+});
+</script>
+
 {% endblock %}

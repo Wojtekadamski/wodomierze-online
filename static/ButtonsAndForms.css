@@ -1,9 +1,9 @@
 .button {
     background: none;
     border: none;
-    padding: 10px 20px;
+    padding: 5px 10px;
     font-size: 20px;
-    color: white;
+    color: hsl(200, 100%, 30%);
     font-weight: bold;
     text-decoration: none;
     cursor: pointer;
@@ -15,15 +15,15 @@
 }
 
 .toggle-button {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: white;
-    border: 1px solid black;
-    width: 300%;
+    background-color: hsl(200, 25%, 95%);
+    color: hsl(200, 15%, 8%);
+    border: 1px solid hsl(200, 15%, 50%);
+    width: 100%;
     text-align: left;
     border-radius: 5px;
     margin-bottom: 5px;
     padding: 10px;
-    background-color: rgba(255, 255, 255, 0.8);
+
 }
 
 .toggle-icon {
@@ -41,3 +41,10 @@
     margin: 5px;
 }
 
+.btn-warning{
+    border-color: hsl(200, 100%, 30%);
+}
+
+.form-control{
+    width: 90%;
+}
