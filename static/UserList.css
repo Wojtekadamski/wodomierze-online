@@ -14,7 +14,7 @@
 .user-item a, .meter-item a, .free-user-item a { /* Style links directly */
     display: block; /* Makes the entire list item clickable */
     text-decoration: none; /* Removes underline from links */
-    color: hsl(200, 30%, 20%); /* A dark blue color for text */
+    color: hsl(213, 35%, 6%); /* A dark blue color for text */
     background-color: hsl(200, 100%, 98%); /* A very light blue for the background */
     border: 1px solid hsl(200, 30%, 80%); /* A soft blue border */
     border-radius: 5px; /* Rounded corners for elegance */
@@ -26,7 +26,7 @@
 
 .user-item a:hover, .meter-item a:hover, .free-user-item a:hover {
     background-color: hsl(200, 50%, 90%); /* Lighter blue on hover */
-    color: hsl(200, 100%, 30%); /* A slightly darker blue for text on hover */
+    color: hsl(197, 33%, 4%); /* A slightly darker blue for text on hover */
     border-color: hsl(200, 50%, 75%); /* Darker border on hover */
     transform: translateY(-2px); /* Slight raise effect on hover */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
