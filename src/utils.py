@@ -100,8 +100,7 @@ def process_csv_water(file_path):
 
     for index, row in df.iterrows():
         try:
-            radio_number = int(row.get('Nr radiowy'))
-            print(int(row.get('Nr radiowy')))
+            radio_number = row.get('Nr radiowy')
             if not pd.isna(radio_number):
                 meter = Meter.query.filter_by(radio_number=radio_number).first()
 
@@ -110,15 +109,19 @@ def process_csv_water(file_path):
                     db.session.add(meter)
                     db.session.commit()
 
+                device_number = row.get('Uwagi', None)  # Zakładamy, że kolumna nazywa się "Uwagi"
+                if device_number:
+                    meter.device_number = device_number
+
                 street_value, building_value, apartment_value = None, None, None
+
 
                 for column in df.columns:
                     if "udynek" in column:
                         street_value = row.get(column)
                     if "latka" in column:
                         building_value = row.get(column)
-                    if "okal" in column:
-                        apartment_value = row.get(column)
+                    apartment_value = row.get('Lokal', None)
 
                     if "Objętość [m3]" in column:
                         month_and_year = column.split()[-2:]  # Ostatnie dwa elementy: "czerwiec 2020"
@@ -210,7 +213,7 @@ def process_csv_heat(file_path):
 
     for index, row in df.iterrows():
         try:
-            radio_number = int(row.get('Nr radiowy'))
+            radio_number = row.get('Nr radiowy')
             if not pd.isna(radio_number):
                 meter = Meter.query.filter_by(radio_number=radio_number).first()
 
@@ -226,8 +229,7 @@ def process_csv_heat(file_path):
                         building_value = row.get(column)
                     if "Klatka" in column:
                         street_value = row.get(column)
-                    if "Lokal" in column:
-                        apartment_value = row.get(column)
+                    apartment_value = row.get('Lokal', None)
 
                     if "Energia [GJ]" in column:
                         date_str = row.get("Data odczytu")

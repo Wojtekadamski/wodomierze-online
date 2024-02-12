@@ -32,6 +32,7 @@ def get_user_by_random_id(random_id):
 class Meter(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     radio_number = db.Column(db.String(64), unique=True, index=True)
+    device_number = db.Column(db.String(32), nullable=True)
     type = db.Column(db.String(64))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     readings = db.relationship('MeterReading', backref='meter', lazy='dynamic')
@@ -39,6 +40,7 @@ class Meter(db.Model):
     events = db.relationship('Event', backref='meter', lazy=True)
     address_id = db.Column(db.Integer, db.ForeignKey('address.id'))
     address = db.relationship('Address', backref='meter', lazy=True)
+    edit_histories = db.relationship('MeterEditHistory', backref='meter', cascade='all, delete-orphan')
     # Relacja do śledzenia, który superużytkownik posiada licznik
     superuser_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     superuser_owner = db.relationship('User', foreign_keys=[superuser_id], backref='owned_meters')
@@ -122,13 +124,13 @@ class Address(db.Model):
     city = db.Column(db.String(100), nullable=True)
     street = db.Column(db.String(100), nullable=True)
     building_number = db.Column(db.String(10), nullable=True)
-    apartment_number = db.Column(db.String(10), nullable=True)
+    apartment_number = db.Column(db.String(32), nullable=True)
     postal_code = db.Column(db.String(20), nullable=True)
 
 
 class MeterEditHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    meter_id = db.Column(db.Integer, db.ForeignKey('meter.id'), nullable=False)
+    meter_id = db.Column(db.Integer, db.ForeignKey('meter.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     edit_type = db.Column(db.String(50), nullable=False)
     edit_details = db.Column(db.String(255))

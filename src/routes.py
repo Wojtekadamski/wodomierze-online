@@ -871,3 +871,29 @@ def meter_history(meter_id):
 
     history = MeterEditHistory.query.filter_by(meter_id=meter_id).order_by(MeterEditHistory.timestamp.desc()).all()
     return render_template('meter_history.html', history=history, meter=meter)
+
+
+@main_routes.route('/delete_selected_meters', methods=['POST'])
+@admin_required
+def delete_selected_meters():
+    selected_ids = request.form.getlist('selected_meters')
+
+    if not selected_ids:
+        flash('Nie zaznaczono żadnych liczników do usunięcia.', 'warning')
+        return redirect(url_for('admin_routes.admin_panel'))  # Zakładając, że 'admin_panel' to nazwa funkcji widoku panelu admina
+
+    try:
+        # Usuń powiązane rekordy z meter_edit_history
+        for meter_id in selected_ids:
+            MeterEditHistory.query.filter_by(meter_id=meter_id).delete()
+            # Usuń licznik
+            Meter.query.filter_by(id=meter_id).delete()
+
+        db.session.commit()
+        flash('Wybrane liczniki zostały usunięte.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Wystąpił błąd podczas usuwania liczników.', 'danger')
+        main_routes.logger.error(f'Error deleting meters: {e}')
+
+    return redirect(url_for('admin_routes.admin_panel'))

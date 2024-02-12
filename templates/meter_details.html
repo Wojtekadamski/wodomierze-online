@@ -17,6 +17,7 @@
     <a href="{{ url_for('main_routes.edit_meter', meter_id=meter.id) }}" class="btn btn-primary no-print">Edytuj licznik</a>
 {% endif %}
 <p>Numer radiowy: {{ meter.radio_number }}</p>
+<p>Numer licznika: {{ meter.device_number }}</p>
 {% if meter.address %}
     <p>Adres: {% if meter.address.city != None %} {{ meter.address.city }},{% endif %} {% if meter.address.street != None %} Ul.{{ meter.address.street }} {{ meter.address.building_number }} {% if meter.address.apartment_number %} {% if meter.address.apartment_number != None %}/{{ meter.address.apartment_number }}
     {% endif %} {% endif %} {% endif %}

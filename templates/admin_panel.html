@@ -40,19 +40,22 @@
     <h3>Lista liczników <span class="toggle-icon">&#9660;</span></h3>
 </button>
     <h3 class="d-none d-lg-block">Lista liczników</h3>
+    <form id="delete-meters-form" method="post" action="{{ url_for('main_routes.delete_selected_meters') }}">
     <div class="collapse" id="meterListCollapse">
-
     <input type="text" id="search-meter-input" style="width: 320px" placeholder="Wyszukaj według numeru radiowego" >
     <ul class="user-list limited-list" style="width: 320px"  id="meter-list">
         {% for meter in meters %}
             <li class="meter-item">
+             <input type="checkbox" name="selected_meters" value="{{ meter.id }}" class="meter-checkbox">
                 <a href="{{ url_for('main_routes.meter_details', meter_id=meter.id) }}"> {{ meter.radio_number }}</a>
             </li>
         {% endfor %}
     </ul>
     </div>
+     <button type="submit" id="delete-selected" class="btn btn-danger" style="display: none;">Usuń wybrane liczniki</button>
+    </form>
 <form method="POST" action="{{ url_for('main_routes.delete_meters') }}">
-    <button type="submit" class="btn btn-danger">Usuń wszystkie mierniki i odczyty</button>
+    <button type="submit" class="btn btn-danger hidden">Usuń wszystkie mierniki i odczyty</button>
 </form>
    </div>
 <div class="right-box user-overview-container">
@@ -97,15 +100,22 @@
 </div>
 
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.meter-checkbox');
+    const deleteButton = document.getElementById('delete-selected');
 
+    function updateDeleteButtonVisibility() {
+        const anyChecked = Array.from(checkboxes).some(c => c.checked);
+        deleteButton.style.display = anyChecked ? 'block' : 'none';
+    }
+
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', updateDeleteButtonVisibility);
+    });
+});
+</script>
     <script>
-
-
-
-
-
-
-
 
         const searchMeterInput = document.getElementById('search-meter-input');
         const meterList = document.getElementById('meter-list');
