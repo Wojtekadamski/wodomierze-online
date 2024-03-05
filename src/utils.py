@@ -110,6 +110,8 @@ def process_csv_water(file_path):
                     db.session.commit()
 
                 device_number = row.get('Uwagi', None)  # Zakładamy, że kolumna nazywa się "Uwagi"
+                if device_number is None or "":
+                    device_number = row.get('Nr wodomierza', None)
                 if device_number:
                     meter.device_number = device_number
 
