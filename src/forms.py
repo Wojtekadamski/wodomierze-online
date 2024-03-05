@@ -99,3 +99,9 @@ class AssignMeterToUserForm(FlaskForm):
         self.user_id.choices = [(u.id, u.email) for u in User.query.filter_by(superuser_id=superuser_id).all()]
         self.meter_id.choices = [(m.id, m.radio_number) for m in
                                  Meter.query.filter_by(owned_by_superuser=superuser_id).all()]
+
+class EditUserForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Nowe hasło')  # Usunięto DataRequired
+    confirm_password = PasswordField('Potwierdź hasło', validators=[EqualTo('password')])  # Usunięto DataRequired
+    submit = SubmitField('Zaktualizuj')

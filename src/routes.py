@@ -7,7 +7,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from src.config import UPLOAD_FOLDER, EMAIL_KEY
 from src.forms import LoginForm, MeterForm, UploadForm, UserForm, EditAccountForm, \
-    UserNotesForm, UserOverviewForm, MessageForm, AssignMeterToSuperuserForm, AssignMeterToUserForm
+    UserNotesForm, UserOverviewForm, MessageForm, AssignMeterToSuperuserForm, AssignMeterToUserForm, EditUserForm
 from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address, MeterEditHistory
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events, \
@@ -287,6 +287,16 @@ def user_overview(user_id):
     users = get_all_users()
     meters = Meter.query.all()
 
+    edit_user_form = EditUserForm(email=user.email)
+
+    if edit_user_form.validate_on_submit():
+        user.email = edit_user_form.email.data
+        if edit_user_form.password.data:  # Sprawdź, czy hasło zostało podane
+            user.password_hash = User.set_password(edit_user_form.password.data)
+        db.session.commit()
+        flash('Dane użytkownika zostały zaktualizowane.', 'success')
+        return redirect(url_for('main_routes.user_overview', user_id=user.id))
+
     if 'meter_id' in request.form and request.form['meter_id']:
         meter_id = int(request.form.get('meter_id'))
         meter = Meter.query.get(meter_id)
@@ -313,6 +323,7 @@ def user_overview(user_id):
         assigned_users=assigned_users,
         unassigned_users=unassigned_users,
         assigned_meters=assigned_meters,
+        edit_user_form=edit_user_form,
     )
 
 

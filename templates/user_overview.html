@@ -11,6 +11,22 @@
     <!-- Informacje o użytkowniku -->
     <div class="user-info">
         <h4>Użytkownik: {{ user.email }}</h4>
+    <!-- Formularz edycji użytkownika -->
+<form method="POST" action="" id="editUserForm" style="display:none;">
+    {{ edit_user_form.hidden_tag() }}
+    <div class="form-group">
+        {{ edit_user_form.email.label }} {{ edit_user_form.email(class="form-control") }}
+    </div>
+    <div class="form-group">
+        {{ edit_user_form.password.label }} {{ edit_user_form.password }}
+    </div>
+    <div class="form-group">
+        {{ edit_user_form.confirm_password.label }} {{ edit_user_form.confirm_password }}
+    </div>
+    {{ edit_user_form.submit }}
+</form>
+<button id="editUserButton" class="btn btn-primary">Edytuj użytkownika</button>
+
     {% if user.superuser %}
         <h6>Przypisany do:  <a href="{{ url_for('main_routes.user_overview', user_id=user.superuser.id) }}">{{ user.superuser.email }}</a></h6>
     {% endif %}
@@ -147,6 +163,17 @@
         </form>
     {% endif %}
     </div>
+    <script>
+document.getElementById('editUserButton').addEventListener('click', function() {
+    var form = document.getElementById('editUserForm');
+    if (form.style.display === "none") {
+        form.style.display = "block";
+    } else {
+        form.style.display = "none";
+    }
+});
+</script>
+
     <script>
         function showPasswordInput() {
             const deleteUserForm = document.getElementById('deleteUserForm');
