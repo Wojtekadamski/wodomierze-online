@@ -292,7 +292,7 @@ def user_overview(user_id):
     if edit_user_form.validate_on_submit():
         user.email = edit_user_form.email.data
         if edit_user_form.password.data:  # Sprawdź, czy hasło zostało podane
-            user.password_hash = User.set_password(edit_user_form.password.data)
+            user.set_password(edit_user_form.password.data)
         db.session.commit()
         flash('Dane użytkownika zostały zaktualizowane.', 'success')
         return redirect(url_for('main_routes.user_overview', user_id=user.id))

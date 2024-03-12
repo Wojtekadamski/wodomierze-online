@@ -94,3 +94,16 @@
 .signature:hover {
     text-decoration: underline; /* Dodaje podkreślenie po najechaniu myszką */
 }
+
+.instructions-list {
+    background-color: rgba(255, 255, 255, 0.5); /* Lekko przezroczyste białe tło */
+    border-radius: 10px; /* Zaokrąglone rogi */
+    padding: 20px; /* Odstępy wewnątrz kontenera */
+    list-style-type: none; /* Usunięcie kropek */
+    margin: 0;
+    padding-left: 0;
+}
+
+.instructions-list li {
+    margin-bottom: 15px; /* Odstępy pomiędzy elementami listy */
+}
