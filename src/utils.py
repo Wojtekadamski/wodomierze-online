@@ -1,9 +1,11 @@
+import calendar
 import csv
 import os
 import random
 
 import chardet as chardet
 from dateutil.relativedelta import relativedelta
+from sqlalchemy import extract, func
 from sqlalchemy.exc import NoResultFound
 from src.models import db, Meter, MeterReading, UserValidationLink, Event, Address
 from functools import wraps
@@ -100,8 +102,8 @@ def process_csv_water(file_path):
 
     for index, row in df.iterrows():
         try:
-            radio_number = row.get('Nr radiowy')
-            if not pd.isna(radio_number):
+            radio_number = str(row.get('Nr radiowy'))
+            if not pd.isnull(radio_number):
                 meter = Meter.query.filter_by(radio_number=radio_number).first()
 
                 if not meter:
@@ -109,13 +111,19 @@ def process_csv_water(file_path):
                     db.session.add(meter)
                     db.session.commit()
 
-                device_number = row.get('Uwagi', None)  # Zakładamy, że kolumna nazywa się "Uwagi"
-                if device_number is None or "":
-                    device_number = row.get('Nr wodomierza', None)
+                device_number = str(row.get('Nr wodomierza', None))  # Zakładamy, że kolumna nazywa się "Uwagi"
+                if pd.isnull(device_number):
+                    device_number = str(row.get('Uwagi', None))
+                if pd.isnull(device_number):
+                    device_number = None  # lub użyj domyślnej wartości, np. ""
                 if device_number:
                     meter.device_number = device_number
 
                 street_value, building_value, apartment_value = None, None, None
+
+                current_year = datetime.now().year
+                current_month = datetime.now().month
+                current_day = datetime.now().day
 
 
                 for column in df.columns:
@@ -134,16 +142,27 @@ def process_csv_water(file_path):
                         if month_num is None:
                             return f"Nieznany miesiąc: {month_str}"
 
-                        date = datetime(int(year_str), month_num, 1)
+                            # Sprawdź, czy odczyt jest z obecnego miesiąca i roku
+                        if month_num == current_month and int(year_str) == current_year:
+                                # Ustaw dzień odczytu na obecny dzień
+                            date = datetime(int(year_str), month_num, current_day)
+                        else:
+                                # Ustaw dzień odczytu na ostatni dzień miesiąca
+                            last_day_of_month = calendar.monthrange(int(year_str), month_num)[1]
+                            date = datetime(int(year_str), month_num, last_day_of_month)
                         reading_value = row.get(column)
                         if not pd.isna(reading_value):
                             # Sprawdź, czy pomiar już istnieje
-                            existing_reading = MeterReading.query.filter_by(
-                                date=date, meter_id=meter.id).first()
+                            existing_reading = MeterReading.query.filter(
+                                MeterReading.meter_id == meter.id,
+                                extract('year', MeterReading.date) == int(year_str),
+                                extract('month', MeterReading.date) == month_num
+                            ).first()
 
                             if existing_reading:
                                 # Aktualizuj istniejący pomiar
                                 existing_reading.reading = reading_value
+                                existing_reading.date = date
                             else:
                                 # Dodaj nowy pomiar
                                 reading = MeterReading(date=date, reading=reading_value, meter_id=meter.id)
@@ -363,3 +382,34 @@ def generate_random_password():
     return ''.join(random.choice(chars) for _ in range(8))
 
 
+def remove_duplicate_readings():
+    meters = Meter.query.all()
+    total_removed_duplicates = 0
+    for meter in meters:
+        # Pobierz odczyty i zgrupuj je po roku i miesiącu
+        readings_by_month = db.session.query(
+            extract('year', MeterReading.date).label('year'),
+            extract('month', MeterReading.date).label('month'),
+            func.max(MeterReading.reading).label('max_reading'),
+            func.count(MeterReading.id).label('count')
+        ).filter_by(meter_id=meter.id).group_by(
+            extract('year', MeterReading.date),
+            extract('month', MeterReading.date)
+        ).having(func.count(MeterReading.id) > 1).all()
+
+        # Dla każdej grupy z duplikatami
+        for year, month, max_reading, count in readings_by_month:
+            # Znajdź wszystkie odczyty w danej grupie
+            readings = MeterReading.query.filter(
+                MeterReading.meter_id == meter.id,
+                extract('year', MeterReading.date) == year,
+                extract('month', MeterReading.date) == month
+            ).order_by(MeterReading.reading.desc()).all()
+
+            # Usuń wszystkie odczyty oprócz tego z największą wartością
+            for reading in readings[1:]:  # Pomijamy pierwszy odczyt, bo jest to ten z największą wartością
+                db.session.delete(reading)
+                total_removed_duplicates += 1
+
+    db.session.commit()
+    return total_removed_duplicates

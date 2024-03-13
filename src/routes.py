@@ -11,7 +11,7 @@ from src.forms import LoginForm, MeterForm, UploadForm, UserForm, EditAccountFor
 from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address, MeterEditHistory
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events, \
-    superuser_required, create_report_data, generate_random_password
+    superuser_required, create_report_data, generate_random_password, remove_duplicate_readings
 
 main_routes = Blueprint('main_routes', __name__)
 admin_routes = Blueprint('admin_routes', __name__)
@@ -907,4 +907,12 @@ def delete_selected_meters():
         flash('Wystąpił błąd podczas usuwania liczników.', 'danger')
         main_routes.logger.error(f'Error deleting meters: {e}')
 
+    return redirect(url_for('admin_routes.admin_panel'))
+
+
+@admin_routes.route('/admin/remove-duplicates', methods=['POST'])
+@admin_required
+def remove_duplicates():
+    total_removed_duplicates = remove_duplicate_readings()
+    flash(f'Usunięto {total_removed_duplicates} duplikatów odczytów.', 'success')
     return redirect(url_for('admin_routes.admin_panel'))

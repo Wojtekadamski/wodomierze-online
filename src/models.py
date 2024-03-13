@@ -32,7 +32,7 @@ def get_user_by_random_id(random_id):
 class Meter(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     radio_number = db.Column(db.String(64), unique=True, index=True)
-    device_number = db.Column(db.String(32), nullable=True)
+    device_number = db.Column(db.String(128), nullable=True)
     type = db.Column(db.String(64))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     readings = db.relationship('MeterReading', backref='meter', lazy='dynamic')
