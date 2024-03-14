@@ -11,8 +11,7 @@ from src.forms import LoginForm, MeterForm, UploadForm, UserForm, EditAccountFor
 from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address, MeterEditHistory
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events, \
-    superuser_required, create_report_data, generate_random_password, remove_duplicate_readings, fetch_data_from_db, \
-    check_and_email_meters
+    superuser_required, create_report_data, generate_random_password, remove_duplicate_readings
 
 main_routes = Blueprint('main_routes', __name__)
 admin_routes = Blueprint('admin_routes', __name__)
