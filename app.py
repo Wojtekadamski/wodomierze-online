@@ -1,7 +1,8 @@
+
 from flask import Flask, flash, redirect, url_for
 from flask_migrate import Migrate
 from werkzeug.exceptions import InternalServerError, NotFound, Forbidden, Unauthorized
-
+from flask_apscheduler import APScheduler
 from src.config import Config
 from src.error_handlers import handle_internal_server_error, handle_not_found_error, handle_forbidden_error, \
     handle_unauthorized_error
@@ -9,17 +10,17 @@ from src.models import db,  login_manager
 from src.routes import main_routes, admin_routes, superuser_routes, user_routes
 
 
-# from src.utils import check_and_email_meters
+from src.utils import check_and_email_meters
 
 
 app = Flask(__name__, static_url_path='', static_folder='static', template_folder='templates')
 app.config.from_object(Config)
 migrate = Migrate(app, db)
 db.init_app(app)
-# scheduler = APScheduler()
-# scheduler.init_app(app)
-# scheduler.start()
-#scheduler.add_job(id='check_and_email_meters_job', func=check_and_email_meters, trigger='cron', hour=9)
+scheduler = APScheduler()
+scheduler.init_app(app)
+scheduler.start()
+scheduler.add_job(id='check_and_email_meters_job', func=check_and_email_meters, trigger='cron', hour=9)
 
 
 with app.app_context():

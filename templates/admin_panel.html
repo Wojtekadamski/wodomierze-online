@@ -58,17 +58,17 @@
     <form action="{{ url_for('admin_routes.remove_duplicates') }}" method="post">
     <button type="submit" class="btn btn-danger">Usuń duplikaty odczytów</button>
 </form>
-{##}
-{#    <button id="emitel-odczyty-btn" class="btn emitel-yellow-btn">Emitel odczyty</button>#}
-{##}
-{#<div id="emitel-days-buttons" class="hidden">#}
-{#    <button class="btn emitel-blue-btn" data-days="2">2 dni</button>#}
-{#    <button class="btn emitel-blue-btn" data-days="3">3 dni</button>#}
-{#    <button class="btn emitel-blue-btn" data-days="4">4 dni</button>#}
-{#    <button class="btn emitel-blue-btn" data-days="5">5 dni</button>#}
-{#</div>#}
-{#<div id="emitel-result"></div>#}
-{#<button id="send-meters-count-btn" class="btn btn-primary">Wyślij ilość liczników</button>#}
+
+    <button id="emitel-odczyty-btn" class="btn emitel-yellow-btn">Emitel odczyty</button>
+
+<div id="emitel-days-buttons" class="hidden">
+    <button class="btn emitel-blue-btn" data-days="2">2 dni</button>
+    <button class="btn emitel-blue-btn" data-days="3">3 dni</button>
+    <button class="btn emitel-blue-btn" data-days="4">4 dni</button>
+    <button class="btn emitel-blue-btn" data-days="5">5 dni</button>
+</div>
+<div id="emitel-result"></div>
+<button id="send-meters-count-btn" class="btn btn-primary">Wyślij ilość liczników</button>
 
 
 <form method="POST" action="{{ url_for('main_routes.delete_meters') }}">
@@ -116,68 +116,68 @@
 </div>
 </div>
 
-{#<script>#}
-{#document.getElementById('send-meters-count-btn').addEventListener('click', function() {#}
-{#    fetch('/admin/send-meters-count', {#}
-{#        method: 'POST',#}
-{#        // Dodaj nagłówki lub ciało żądania, jeśli jest to konieczne#}
-{#    }).then(response => {#}
-{#        if (response.ok) {#}
-{#            alert('E-mail został wysłany.');#}
-{#        } else {#}
-{#            alert('Wystąpił błąd podczas wysyłania e-maila.');#}
-{#        }#}
-{#        return response.json();#}
-{#    }).then(data => {#}
-{#        console.log(data); // Opcjonalnie, obsłuż dane zwrotne#}
-{#    }).catch(error => {#}
-{#        console.error('Error:', error);#}
-{#    });#}
-{#});#}
-{#</script>#}
-{##}
-{#    <script>#}
-{#document.getElementById('emitel-odczyty-btn').addEventListener('click', function() {#}
-{#    var daysButtons = document.getElementById('emitel-days-buttons');#}
-{#    daysButtons.classList.toggle('hidden'); // Pokaż lub ukryj przyciski dni#}
-{#});#}
-{##}
-{#// Dodajemy nasłuchiwanie na przyciski dni#}
-{#document.querySelectorAll('.emitel-blue-btn').forEach(button => {#}
-{#    button.addEventListener('click', function() {#}
-{#        const daysBack = this.getAttribute('data-days');#}
-{#        fetchEmitelReadings(daysBack);#}
-{#    });#}
-{#});#}
-{##}
-{#function fetchEmitelReadings(daysBack) {#}
-{#    // Przygotuj dane jako ciąg zapytania#}
-{#    const data = `days_back=${encodeURIComponent(daysBack)}`;#}
-{##}
-{#    fetch('/admin/emitel-readings', {#}
-{#        method: 'POST',#}
-{#        body: data,#}
-{#        headers: {#}
-{#            'Accept': 'application/json',#}
-{#            'Content-Type': 'application/x-www-form-urlencoded', // Ustaw właściwy typ zawartości#}
-{#        },#}
-{#    })#}
-{#    .then(response => {#}
-{#        if (!response.ok) {#}
-{#            throw new Error('Network response was not ok');#}
-{#        }#}
-{#        return response.json();#}
-{#    })#}
-{#    .then(data => {#}
-{#        document.getElementById('emitel-result').textContent = data.message;#}
-{#    })#}
-{#    .catch(error => {#}
-{#        console.error('Error:', error);#}
-{#        document.getElementById('emitel-result').textContent = 'Wystąpił błąd: ' + error.message;#}
-{#    });#}
-{#}#}
-{##}
-{#</script>#}
+<script>
+document.getElementById('send-meters-count-btn').addEventListener('click', function() {
+    fetch('/admin/send-meters-count', {
+        method: 'POST',
+        // Dodaj nagłówki lub ciało żądania, jeśli jest to konieczne
+    }).then(response => {
+        if (response.ok) {
+            alert('E-mail został wysłany.');
+        } else {
+            alert('Wystąpił błąd podczas wysyłania e-maila.');
+        }
+        return response.json();
+    }).then(data => {
+        console.log(data); // Opcjonalnie, obsłuż dane zwrotne
+    }).catch(error => {
+        console.error('Error:', error);
+    });
+});
+</script>
+
+    <script>
+document.getElementById('emitel-odczyty-btn').addEventListener('click', function() {
+    var daysButtons = document.getElementById('emitel-days-buttons');
+    daysButtons.classList.toggle('hidden'); // Pokaż lub ukryj przyciski dni
+});
+
+// Dodajemy nasłuchiwanie na przyciski dni
+document.querySelectorAll('.emitel-blue-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const daysBack = this.getAttribute('data-days');
+        fetchEmitelReadings(daysBack);
+    });
+});
+
+function fetchEmitelReadings(daysBack) {
+    // Przygotuj dane jako ciąg zapytania
+    const data = `days_back=${encodeURIComponent(daysBack)}`;
+
+    fetch('/admin/emitel-readings', {
+        method: 'POST',
+        body: data,
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/x-www-form-urlencoded', // Ustaw właściwy typ zawartości
+        },
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById('emitel-result').textContent = data.message;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('emitel-result').textContent = 'Wystąpił błąd: ' + error.message;
+    });
+}
+
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const checkboxes = document.querySelectorAll('.meter-checkbox');

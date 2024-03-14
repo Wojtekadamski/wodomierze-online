@@ -17,8 +17,8 @@ class Config(object):
     EMITEL_SERVER = os.environ.get('EMITEL_SERVER', 'dev-smartbits-db-server.database.windows.net')
     EMITEL_NAME = os.environ.get('EMITEL_NAME', 'dev-liczniki-db')
 
-    # SQLALCHEMY_BINDS = {
-    #     'emitel_db': f'mssql+pyodbc://{EMITEL_USER}:{EMITEL_PASS}@{EMITEL_SERVER}/{EMITEL_NAME}?driver=ODBC+Driver+18+for+SQL+Server'
-    # }
-    #
-    # SCHEDULER_API_ENABLED = True
+    SQLALCHEMY_BINDS = {
+        'emitel_db': f'mssql+pyodbc://{EMITEL_USER}:{EMITEL_PASS}@{EMITEL_SERVER}/{EMITEL_NAME}?driver=ODBC+Driver+18+for+SQL+Server'
+    }
+
+    SCHEDULER_API_ENABLED = True
