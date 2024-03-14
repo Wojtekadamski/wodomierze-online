@@ -66,4 +66,4 @@ jobs:
         with:
           app-name: 'dev-webapp01-smbts'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_4D73BA0A2C5547FBADE14F468DF81A29 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_AEAAF2C9263C4811B2406D9B390BA9D0 }}
