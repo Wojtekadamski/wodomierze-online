@@ -1,0 +1,23 @@
+.emitel-yellow-btn {
+    background-color: #ffcc00; /* Żółty kolor tła */
+    color: #000; /* Czarny kolor tekstu */
+    border-color: #ffcc00; /* Żółta obramówka */
+    margin-top: 10px;
+    width: 150px;
+}
+
+.emitel-blue-btn {
+    background-color: #007bff; /* Niebieski kolor tła */
+    color: #fff; /* Biały kolor tekstu */
+    margin-left: 5px; /* Margines z lewej strony dla przycisków dni */
+}
+
+#emitel-days-buttons {
+    display: flex; /* Ustawienie przycisków dni w linii */
+    align-items: center; /* Wycentrowanie przycisków w pionie */
+    gap: 10px; /* Odstępy między przyciskami */
+}
+
+.hiden {
+    display: none;
+}
