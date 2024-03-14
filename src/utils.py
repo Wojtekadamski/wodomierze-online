@@ -415,80 +415,80 @@ def remove_duplicate_readings():
     db.session.commit()
     return total_removed_duplicates
 
-
-def fetch_data_from_db(start_date, end_date):
-    # Użyj konfiguracji połączenia z aplikacji Flask
-    connection_url = current_app.config['SQLALCHEMY_BINDS']['emitel_db']
-
-    query = f"""
-    SELECT m.DeviceEui, r.PayloadDate AS 'Data odczytu', r.ReadingValue1 AS 'Odczyt'
-    FROM emitel.Meters m
-    JOIN emitel.Readings r ON m.Id = r.MeterId
-    WHERE Type = 1 AND PayloadDate BETWEEN '{start_date} 00:00:00' AND '{end_date} 23:59:59'
-    ORDER BY m.DeviceEui, PayloadDate
-    """
-
-    engine = create_engine(connection_url)
-    data = pd.read_sql_query(query, engine)
-    print("sukces")
-    return data
-
-
-def check_and_email_meters():
-    # Przykładowa lista wszystkich numerów liczników
-    all_meters = ["0a640f1e837e2e71",
-"0f2b5549d32e7883",
-"226dc99eb72e932e",
-"438d50ae4c514bdf",
-"5005f04b603f4042",
-"52eb7932b654b6a8",
-"5d807c297dc53e66",
-"60bc4d5ef53efb1c",
-"6101bc313f439b2f",
-"6b6b15401096b3d4",
-"86322af7630aa5fd",
-"8b5f1386c5c361aa",
-"8d506dad5e28882f",
-"8e471ea668225eec",
-"989b7a62bffd1680",
-"a60fa717a75acb6d",
-"c4230443f36fb37a",
-"dd0a01f759f08904",
-"e20f730d59484ebe",
-"e636791287f0ba5a",
-"e7d7c33fba50b8d8",
-"eb370e5d72b78529",
-"ef722ec5f98e0f6c",
-"ef7387cf2a9e6f89",
-"fcbb14f41687168a"
-]  # Uzupełnij tę listę
-
-    # Pobierz dane za ostatnie 2 i 3 dni
-    today = datetime.now()
-    data_2_days = fetch_data_from_db((today - timedelta(days=2)).strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d'))
-    data_3_days = fetch_data_from_db((today - timedelta(days=3)).strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d'))
-
-    # Znajdź unikalne numery liczników, które się odezwały
-    meters_2_days = set(data_2_days['DeviceEui'].unique())
-    meters_3_days = set(data_3_days['DeviceEui'].unique())
-
-    # Znajdź liczniki, które się nie odezwały
-    missing_meters_2_days = set(all_meters) - meters_2_days
-    missing_meters_3_days = set(all_meters) - meters_3_days
-
-    # Przygotuj treść e-maila
-    email_body = f"Liczba unikalnych liczników, które odezwały się w ciągu ostatnich 2 dni: {len(meters_2_days)}\n"
-    email_body += f"Liczba unikalnych liczników, które odezwały się w ciągu ostatnich 3 dni: {len(meters_3_days)}\n\n"
-    email_body += "Liczniki, które nie odezwały się w ciągu ostatnich 2 dni:\n" + ", ".join(missing_meters_2_days) + "\n\n"
-    email_body += "Liczniki, które nie odezwały się w ciągu ostatnich 3 dni:\n" + ", ".join(missing_meters_3_days)
-
-    print(email_body)
-    # Wysyłanie e-maila (użyj funkcji send_email zdefiniowanej wcześniej)
-    success = send_email("wwadamski@gmail.com", f"Podsumowanie wodomierzy na dzień {today}", email_body)
-    if success:
-        return True
-    else:
-        return False
+#
+# def fetch_data_from_db(start_date, end_date):
+#     # Użyj konfiguracji połączenia z aplikacji Flask
+#     connection_url = current_app.config['SQLALCHEMY_BINDS']['emitel_db']
+#
+#     query = f"""
+#     SELECT m.DeviceEui, r.PayloadDate AS 'Data odczytu', r.ReadingValue1 AS 'Odczyt'
+#     FROM emitel.Meters m
+#     JOIN emitel.Readings r ON m.Id = r.MeterId
+#     WHERE Type = 1 AND PayloadDate BETWEEN '{start_date} 00:00:00' AND '{end_date} 23:59:59'
+#     ORDER BY m.DeviceEui, PayloadDate
+#     """
+#
+#     engine = create_engine(connection_url)
+#     data = pd.read_sql_query(query, engine)
+#     print("sukces")
+#     return data
+#
+#
+# def check_and_email_meters():
+#     # Przykładowa lista wszystkich numerów liczników
+#     all_meters = ["0a640f1e837e2e71",
+# "0f2b5549d32e7883",
+# "226dc99eb72e932e",
+# "438d50ae4c514bdf",
+# "5005f04b603f4042",
+# "52eb7932b654b6a8",
+# "5d807c297dc53e66",
+# "60bc4d5ef53efb1c",
+# "6101bc313f439b2f",
+# "6b6b15401096b3d4",
+# "86322af7630aa5fd",
+# "8b5f1386c5c361aa",
+# "8d506dad5e28882f",
+# "8e471ea668225eec",
+# "989b7a62bffd1680",
+# "a60fa717a75acb6d",
+# "c4230443f36fb37a",
+# "dd0a01f759f08904",
+# "e20f730d59484ebe",
+# "e636791287f0ba5a",
+# "e7d7c33fba50b8d8",
+# "eb370e5d72b78529",
+# "ef722ec5f98e0f6c",
+# "ef7387cf2a9e6f89",
+# "fcbb14f41687168a"
+# ]  # Uzupełnij tę listę
+#
+#     # Pobierz dane za ostatnie 2 i 3 dni
+#     today = datetime.now()
+#     data_2_days = fetch_data_from_db((today - timedelta(days=2)).strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d'))
+#     data_3_days = fetch_data_from_db((today - timedelta(days=3)).strftime('%Y-%m-%d'), today.strftime('%Y-%m-%d'))
+#
+#     # Znajdź unikalne numery liczników, które się odezwały
+#     meters_2_days = set(data_2_days['DeviceEui'].unique())
+#     meters_3_days = set(data_3_days['DeviceEui'].unique())
+#
+#     # Znajdź liczniki, które się nie odezwały
+#     missing_meters_2_days = set(all_meters) - meters_2_days
+#     missing_meters_3_days = set(all_meters) - meters_3_days
+#
+#     # Przygotuj treść e-maila
+#     email_body = f"Liczba unikalnych liczników, które odezwały się w ciągu ostatnich 2 dni: {len(meters_2_days)}\n"
+#     email_body += f"Liczba unikalnych liczników, które odezwały się w ciągu ostatnich 3 dni: {len(meters_3_days)}\n\n"
+#     email_body += "Liczniki, które nie odezwały się w ciągu ostatnich 2 dni:\n" + ", ".join(missing_meters_2_days) + "\n\n"
+#     email_body += "Liczniki, które nie odezwały się w ciągu ostatnich 3 dni:\n" + ", ".join(missing_meters_3_days)
+#
+#     print(email_body)
+#     # Wysyłanie e-maila (użyj funkcji send_email zdefiniowanej wcześniej)
+#     success = send_email("wwadamski@gmail.com", f"Podsumowanie wodomierzy na dzień {today}", email_body)
+#     if success:
+#         return True
+#     else:
+#         return False
 
 
 
