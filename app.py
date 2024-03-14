@@ -11,6 +11,7 @@ from flask_apscheduler import APScheduler
 
 # from src.utils import check_and_email_meters
 
+
 app = Flask(__name__, static_url_path='', static_folder='static', template_folder='templates')
 app.config.from_object(Config)
 migrate = Migrate(app, db)
