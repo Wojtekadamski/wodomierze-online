@@ -7,7 +7,7 @@ from src.error_handlers import handle_internal_server_error, handle_not_found_er
     handle_unauthorized_error
 from src.models import db,  login_manager
 from src.routes import main_routes, admin_routes, superuser_routes, user_routes
-from flask_apscheduler import APScheduler
+
 
 # from src.utils import check_and_email_meters
 
@@ -20,6 +20,7 @@ db.init_app(app)
 # scheduler.init_app(app)
 # scheduler.start()
 #scheduler.add_job(id='check_and_email_meters_job', func=check_and_email_meters, trigger='cron', hour=9)
+
 
 with app.app_context():
     db.create_all()
