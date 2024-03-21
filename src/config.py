@@ -12,13 +12,13 @@ class Config(object):
     DB_NAME = os.environ.get('DB_NAME', 'smbts-wodomierze-online')
     SQLALCHEMY_DATABASE_URI = f'mssql+pyodbc://{DB_USER}:{DB_PASS}@{DB_SERVER}/{DB_NAME}?driver=ODBC+Driver+18+for+SQL+Server' #connection string for SQL server provided by SQL server
 
-    EMITEL_USER = os.environ.get('DB_USER')
-    EMITEL_PASS = os.environ.get('EMITEL_PASS')
-    EMITEL_SERVER = os.environ.get('EMITEL_SERVER', 'dev-smartbits-db-server.database.windows.net')
-    EMITEL_NAME = os.environ.get('EMITEL_NAME', 'dev-liczniki-db')
-
-    SQLALCHEMY_BINDS = {
-        'emitel_db': f'mssql+pyodbc://{EMITEL_USER}:{EMITEL_PASS}@{EMITEL_SERVER}/{EMITEL_NAME}?driver=ODBC+Driver+18+for+SQL+Server'
-    }
-
-    SCHEDULER_API_ENABLED = True
+    # EMITEL_USER = os.environ.get('DB_USER')
+    # EMITEL_PASS = os.environ.get('EMITEL_PASS')
+    # EMITEL_SERVER = os.environ.get('EMITEL_SERVER', 'dev-smartbits-db-server.database.windows.net')
+    # EMITEL_NAME = os.environ.get('EMITEL_NAME', 'dev-liczniki-db')
+    #
+    # SQLALCHEMY_BINDS = {
+    #     'emitel_db': f'mssql+pyodbc://{EMITEL_USER}:{EMITEL_PASS}@{EMITEL_SERVER}/{EMITEL_NAME}?driver=ODBC+Driver+18+for+SQL+Server'
+    # }
+    #
+    # SCHEDULER_API_ENABLED = True

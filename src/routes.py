@@ -11,8 +11,7 @@ from src.forms import LoginForm, MeterForm, UploadForm, UserForm, EditAccountFor
 from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address, MeterEditHistory
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events, \
-    superuser_required, create_report_data, generate_random_password, remove_duplicate_readings, check_and_email_meters, \
-    fetch_data_from_db
+    superuser_required, create_report_data, generate_random_password, remove_duplicate_readings
 
 main_routes = Blueprint('main_routes', __name__)
 admin_routes = Blueprint('admin_routes', __name__)
@@ -918,32 +917,32 @@ def remove_duplicates():
     flash(f'Usunięto {total_removed_duplicates} duplikatów odczytów.', 'success')
     return redirect(url_for('admin_routes.admin_panel'))
 
-@admin_routes.route('/emitel-readings', methods=['POST'])
-@admin_required  # Upewnij się, że ta trasa jest dostępna tylko dla administratorów
-def emitel_readings():
-    print(request.form)
-    days_back = request.form.get('days_back', type=int)
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=days_back)
-
-    data = fetch_data_from_db(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
-    # Oblicz liczbę unikalnych liczników, które odpowiedziały
-    unique_meters_count = len(data['DeviceEui'].unique())
-    print(unique_meters_count)
-
-    return jsonify({'message': f'Liczba liczników, które odpowiedziały w ciągu ostatnich {days_back} dni: {unique_meters_count}'})
-
-
-@admin_routes.route('/send-meters-count', methods=['POST'])
-@admin_required  # Upewnij się, że ta trasa jest dostępna tylko dla administratorów
-def send_meters_count():
-    try:
-        success = check_and_email_meters()  # Wywołaj funkcję wysyłającą e-mail
-        if success:
-            flash('E-mail z ilością liczników został wysłany.', 'success')
-        else:
-            flash('E-mail nie został wysłany.', 'warning')
-    except Exception as e:
-        flash(f'Wystąpił błąd: {str(e)}', 'danger')
-
-    return redirect(url_for('admin_routes.admin_panel'))  # Przekieruj z powrotem do panelu admina
+# @admin_routes.route('/emitel-readings', methods=['POST'])
+# @admin_required  # Upewnij się, że ta trasa jest dostępna tylko dla administratorów
+# def emitel_readings():
+#     print(request.form)
+#     days_back = request.form.get('days_back', type=int)
+#     end_date = datetime.now()
+#     start_date = end_date - timedelta(days=days_back)
+#
+#     data = fetch_data_from_db(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
+#     # Oblicz liczbę unikalnych liczników, które odpowiedziały
+#     unique_meters_count = len(data['DeviceEui'].unique())
+#     print(unique_meters_count)
+#
+#     return jsonify({'message': f'Liczba liczników, które odpowiedziały w ciągu ostatnich {days_back} dni: {unique_meters_count}'})
+#
+#
+# @admin_routes.route('/send-meters-count', methods=['POST'])
+# @admin_required  # Upewnij się, że ta trasa jest dostępna tylko dla administratorów
+# def send_meters_count():
+#     try:
+#         success = check_and_email_meters()  # Wywołaj funkcję wysyłającą e-mail
+#         if success:
+#             flash('E-mail z ilością liczników został wysłany.', 'success')
+#         else:
+#             flash('E-mail nie został wysłany.', 'warning')
+#     except Exception as e:
+#         flash(f'Wystąpił błąd: {str(e)}', 'danger')
+#
+#     return redirect(url_for('admin_routes.admin_panel'))  # Przekieruj z powrotem do panelu admina
