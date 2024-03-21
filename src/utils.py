@@ -348,9 +348,15 @@ def create_report_data(selected_meters, report_period):
             else:
                 meter_type = meter.type
 
+            if meter.device_number:
+                device_number=meter.device_number
+            else:
+                device_number='N/A'
+
             meter_data = {
                 'user_email': meter.user.email if meter.user else 'N/A',
                 'meter_number': meter.radio_number,
+                'device_number': device_number,
                 'meter_type': meter_type,
                 'meter_address': address_str,  # Użyj utworzonego ciągu adresu
             }

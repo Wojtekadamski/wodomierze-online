@@ -29,6 +29,7 @@
         <th>Email Użytkownika</th>
         <th>Adres Licznika</th>
         <th>Nr Radiowy</th>
+        <th>Nr Licznika</th>
         <th>Typ Licznika</th>
         <!-- Nagłówki dla miesięcy -->
         {% for month_name in translated_month_names %}
@@ -40,6 +41,7 @@
         <td>{{ data.user_email }}</td>
         <td>{{ data.meter_address }}</td>
         <td>{{ data.meter_number }}</td>
+        <td>{{ data.device_number }}</td>
         <td>{{ data.meter_type }}</td>
         <!-- Dane dla każdego miesiąca -->
         {% for month_name in translated_month_names %}
