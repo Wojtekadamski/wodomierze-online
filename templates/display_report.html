@@ -124,7 +124,7 @@ function drawChart(reportData) {
 
         // Przejście przez miesiące i zbieranie danych wraz z datami
         for (var monthName in dataEntry) {
-            if (dataEntry.hasOwnProperty(monthName) && monthName !== 'user_email' && monthName !== 'meter_number' && monthName !== 'meter_address' && monthName !== 'meter_type') {
+            if (dataEntry.hasOwnProperty(monthName) && monthName !== 'user_email' && monthName !== 'meter_number' && monthName!== 'device_number' && monthName !== 'meter_address' && monthName !== 'meter_type') {
                 var dateISO = convertMonthNameToISO(monthName);
                 dataWithDates.push({ date: dateISO, value: dataEntry[monthName] });
             }
