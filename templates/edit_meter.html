@@ -6,7 +6,7 @@
 
 {% block content %}
 <div class="edit-meter-container ">
-    <form method="post" action="{{ url_for('main_routes.edit_meter', meter_id=meter.id) }}">
+    <form method="post" action="{{ url_for('admin_routes.edit_meter', meter_id=meter.id) }}">
         <div class="form-group">
             <label for="new_radio_number">Nowy numer radiowy:</label>
             <input type="text" id="new_radio_number" name="new_radio_number" class="form-control" value="{{ meter.radio_number }}">

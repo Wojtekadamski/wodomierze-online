@@ -810,8 +810,8 @@ def add_multiple_users():
 
 
 
-@main_routes.route('/edit_meter/<int:meter_id>', methods=['GET', 'POST'])
-@login_required
+@admin_routes.route('/admin/edit_meter/<int:meter_id>', methods=['GET', 'POST'])
+@admin_required
 def edit_meter(meter_id):
     if not current_user.is_admin:
         flash('Brak uprawnień do edycji licznika.', 'danger')
@@ -884,7 +884,7 @@ def meter_history(meter_id):
     return render_template('meter_history.html', history=history, meter=meter)
 
 
-@main_routes.route('/delete_selected_meters', methods=['POST'])
+@admin_routes.route('/admin/delete_selected_meters', methods=['POST'])
 @admin_required
 def delete_selected_meters():
     selected_ids = request.form.getlist('selected_meters')
