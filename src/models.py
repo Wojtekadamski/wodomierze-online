@@ -147,8 +147,6 @@ class UserReportMonth(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     month = db.Column(db.Integer, nullable=False)  # Numer miesiąca (1-12)
 
-    user = db.relationship('User', backref='report_months')
-
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))

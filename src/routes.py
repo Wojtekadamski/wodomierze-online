@@ -1,3 +1,4 @@
+import calendar
 import random
 from datetime import datetime, timedelta
 
@@ -7,8 +8,9 @@ from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from src.config import UPLOAD_FOLDER, EMAIL_KEY
 from src.forms import LoginForm, MeterForm, UploadForm, UserForm, EditAccountForm, \
-    UserNotesForm, UserOverviewForm, MessageForm, AssignMeterToSuperuserForm, AssignMeterToUserForm, EditUserForm
-from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address, MeterEditHistory
+    UserNotesForm, UserOverviewForm, MessageForm, AssignMeterToSuperuserForm, AssignMeterToUserForm, EditUserForm, \
+    MONTHS_PL
+from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address, MeterEditHistory, UserReportMonth
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events, \
     superuser_required, create_report_data, generate_random_password, remove_duplicate_readings
@@ -288,14 +290,29 @@ def user_overview(user_id):
     meters = Meter.query.all()
 
     edit_user_form = EditUserForm(email=user.email)
+    edit_user_form.report_months.choices = [(str(i), MONTHS_PL[i]) for i in range(1, 13)]
+    selected_months = [str(rm.month) for rm in user.report_months.all()]
+    edit_user_form.report_months.data = selected_months
+
+    if request.method == 'POST':
+        print(request.form)
+        print(request.form.getlist('report_months[]'))
 
     if edit_user_form.validate_on_submit():
         user.email = edit_user_form.email.data
         if edit_user_form.password.data:  # Sprawdź, czy hasło zostało podane
             user.set_password(edit_user_form.password.data)
+
+        UserReportMonth.query.filter_by(user_id=user.id).delete()
+        for month in edit_user_form.report_months.data:
+            new_month = UserReportMonth(user_id=user.id, month=int(month))
+            db.session.add(new_month)
+            print(f"Dodano miesiąc {new_month}")
+
         db.session.commit()
         flash('Dane użytkownika zostały zaktualizowane.', 'success')
         return redirect(url_for('main_routes.user_overview', user_id=user.id))
+
 
     if 'meter_id' in request.form and request.form['meter_id']:
         meter_id = int(request.form.get('meter_id'))
