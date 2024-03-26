@@ -7,7 +7,7 @@ import chardet as chardet
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import extract, func
 from sqlalchemy.exc import NoResultFound
-from src.models import db, Meter, MeterReading, UserValidationLink, Event, Address
+from src.models import db, Meter, MeterReading, UserValidationLink, Event, Address, UserReportMonth
 from functools import wraps
 from flask import flash, redirect, url_for
 from flask_login import current_user
@@ -418,6 +418,18 @@ def remove_duplicate_readings():
 
     db.session.commit()
     return total_removed_duplicates
+
+
+def update_user_report_months(user_id, selected_months):
+    # Usunięcie istniejących rekordów
+    UserReportMonth.query.filter_by(user_id=user_id).delete()
+
+    # Dodanie nowych rekordów dla zaznaczonych miesięcy
+    for month in selected_months:
+        new_month = UserReportMonth(user_id=user_id, month=month)
+        db.session.add(new_month)
+
+    db.session.commit()
 
 
 # def fetch_data_from_db(start_date, end_date):

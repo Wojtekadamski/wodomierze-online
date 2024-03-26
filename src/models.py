@@ -59,6 +59,8 @@ class User(UserMixin, db.Model):
     # Relacja do przypisania użytkowników do superużytkownika
     assigned_users = db.relationship('User', backref=db.backref('superuser', remote_side=[id]), lazy='dynamic')
     unread_messages = db.Column(db.Integer, default=0)
+    report_months = db.relationship('UserReportMonth', backref='user', lazy='dynamic')
+
 
 
 
@@ -139,6 +141,13 @@ class MeterEditHistory(db.Model):
     def __repr__(self):
         return f'<MeterEditHistory {self.id}>'
 
+
+class UserReportMonth(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    month = db.Column(db.Integer, nullable=False)  # Numer miesiąca (1-12)
+
+    user = db.relationship('User', backref='report_months')
 
 @login_manager.user_loader
 def load_user(user_id):
