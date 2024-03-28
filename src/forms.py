@@ -113,6 +113,4 @@ class EditUserForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Nowe hasło')  # Usunięto DataRequired
     confirm_password = PasswordField('Potwierdź hasło', validators=[EqualTo('password')])  # Usunięto DataRequired
-    report_months = SelectMultipleField('Miesiące raportowania', choices=[(str(i), MONTHS_PL[i]) for i in range(1, 13)],
-                                        coerce=int)
     submit = SubmitField('Zaktualizuj')

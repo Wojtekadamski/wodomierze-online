@@ -331,8 +331,11 @@ def create_report_data(selected_meters, report_period):
     report_data = []
     for meter_radio_number in selected_meters:
         meter = Meter.query.filter_by(radio_number=meter_radio_number).first()
-        if meter:
-            # Tworzenie reprezentacji adresu jako ciągu znaków
+        if meter and meter.user:
+
+            allowed_months = [rm.month for rm in meter.user.report_months]
+
+
             if meter.address:
                 address_parts = [
                     meter.address.street,
@@ -364,18 +367,19 @@ def create_report_data(selected_meters, report_period):
             # Dodajemy kolumny dla każdego miesiąca
             for month in range(report_period):
                 month_date = end_date - relativedelta(months=month)
-                month_name = month_date.strftime('%B %Y')
-                meter_data[month_name] = ''
+                if month_date.month in allowed_months:
+                    month_name = month_date.strftime('%B %Y')
+                    meter_data[month_name] = ''
 
-                # Znajdź odczyt dla danego miesiąca
-                reading = MeterReading.query.filter(
-                    MeterReading.meter_id == meter.id,
-                    MeterReading.date >= month_date - relativedelta(months=1),
-                    MeterReading.date < month_date
-                ).order_by(MeterReading.date.desc()).first()  # Pobierz najnowszy odczyt w miesiącu
+                    # Znajdź odczyt dla danego miesiąca
+                    reading = MeterReading.query.filter(
+                        MeterReading.meter_id == meter.id,
+                        MeterReading.date >= month_date - relativedelta(months=1),
+                        MeterReading.date < month_date
+                    ).order_by(MeterReading.date.desc()).first()  # Pobierz najnowszy odczyt w miesiącu
 
-                if reading:
-                    meter_data[month_name] = reading.reading
+                    if reading:
+                        meter_data[month_name] = reading.reading
 
             report_data.append(meter_data)
 
