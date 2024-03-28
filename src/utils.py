@@ -332,8 +332,10 @@ def create_report_data(selected_meters, report_period):
     for meter_radio_number in selected_meters:
         meter = Meter.query.filter_by(radio_number=meter_radio_number).first()
         if meter and meter.user:
-
-            allowed_months = [rm.month for rm in meter.user.report_months]
+            if current_user.is_admin:
+                allowed_months = range(1,13)
+            else:
+                allowed_months = [rm.month for rm in meter.user.report_months]
 
 
             if meter.address:

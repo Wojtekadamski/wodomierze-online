@@ -19,7 +19,7 @@
     <form method="post" action="{{ url_for('main_routes.edit_meter', meter_id=meter.id) }}">
         <table>
         <tr>
-            <th>Zaznacz</th>
+            <th>Usuń</th>
             <th>Data</th>
             <th>Odczyt</th>
             <th>Edytuj odczyt</th>
@@ -27,12 +27,25 @@
         {% for reading in readings %}
         <tr>
             <td><input type="checkbox" name="reading_ids" value="{{ reading.id }}"></td>
-            <td>{{ reading.date }}</td>
+            <td>{{ reading.date.strftime('%Y-%m-%d') }}</td>
             <td>{{ reading.reading }}</td>
             <td><input type="text" name="reading_value_{{ reading.id }}" value="{{ reading.reading }}"></td>
         </tr>
         {% endfor %}
     </table>
+
+     <div class="new-reading-form">
+            <h4>Dodaj nowy odczyt</h4>
+            <div class="form-group">
+                <label for="new_reading_date">Data odczytu:</label>
+                <input type="date" id="new_reading_date" name="new_reading_date" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="new_reading_value">Wartość odczytu:</label>
+                <input type="number" step="0.01" id="new_reading_value" name="new_reading_value" class="form-control">
+            </div>
+        </div>
+
         <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
     </form>
 </div>

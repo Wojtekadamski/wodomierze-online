@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from flask import render_template, flash, redirect, url_for, Blueprint, request, jsonify, Response, send_file, session
 from flask_login import current_user, login_user, logout_user, login_required
+from sqlalchemy import extract
 from werkzeug.utils import secure_filename
 from src.config import UPLOAD_FOLDER, EMAIL_KEY
 from src.forms import LoginForm, MeterForm, UploadForm, UserForm, EditAccountForm, \
@@ -124,8 +125,17 @@ def meter_details(meter_id):
             current_user.is_superuser and meter.superuser_id == current_user.id):
         flash('Brak uprawnień do wyświetlenia tych szczegółów.', 'danger')
         return redirect(url_for('main_routes.home'))
-
-    readings = MeterReading.query.filter_by(meter_id=meter.id).all()
+    if current_user.is_admin:
+        readings = MeterReading.query.filter_by(meter_id=meter.id).all()
+    else:
+        allowed_months = [rm.month for rm in current_user.report_months] if not current_user.is_superuser else [rm.month
+                                                                                                                for rm
+                                                                                                                in
+                                                                                                                meter.user.report_months]
+        readings = MeterReading.query.filter(
+            MeterReading.meter_id == meter.id,
+            extract('month', MeterReading.date).in_(allowed_months)
+        ).all()
     readings_list = [{"date": reading.date, "reading": reading.reading} for reading in readings]
     return render_template('meter_details.html', meter=meter, readings=readings_list, user=user, events=events)
 
@@ -832,6 +842,22 @@ def edit_meter(meter_id):
         new_radio_number = request.form.get('new_radio_number')
         reading_ids_to_delete = request.form.getlist('reading_ids')
         delete_duplicates = request.form.get('delete_duplicates')
+        new_reading_date = request.form.get('new_reading_date')
+        new_reading_value = request.form.get('new_reading_value')
+
+        if new_reading_date and new_reading_value:
+            try:
+                new_reading_date_parsed = datetime.strptime(new_reading_date, '%Y-%m-%d')
+                new_reading = MeterReading(date=new_reading_date_parsed, reading=float(new_reading_value),
+                                           meter_id=meter.id)
+                db.session.add(new_reading)
+                # Dodaj wpis do historii edycji
+                new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id,
+                                                     edit_type='Dodano nowy odczyt',
+                                                     edit_details=f'Dodano odczyt z dnia {new_reading_date} o wartości {new_reading_value}')
+                db.session.add(new_history_entry)
+            except ValueError:
+                flash('Nieprawidłowy format daty.', 'danger')
 
         # Aktualizacja numeru radiowego
         if new_radio_number and new_radio_number != meter.radio_number:
@@ -839,8 +865,8 @@ def edit_meter(meter_id):
             meter.radio_number = new_radio_number
             # Dodaj wpis do historii edycji
             new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id,
-                                                 edit_type='Change Radio Number',
-                                                 edit_details=f'Changed from {old_radio_number} to {new_radio_number}')
+                                                 edit_type='Zmiana numeru radiowego',
+                                                 edit_details=f'zmiana z {old_radio_number} na {new_radio_number}')
             db.session.add(new_history_entry)
 
         # Usuwanie wybranych odczytów
@@ -850,8 +876,8 @@ def edit_meter(meter_id):
                 db.session.delete(reading)
                 # Dodaj wpis do historii edycji
                 new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id,
-                                                     edit_type='Delete Reading',
-                                                     edit_details=f'Deleted reading of {reading.date}')
+                                                     edit_type='Usunięto odczyt',
+                                                     edit_details=f'Usunięto odczyt z dnia {reading.date}')
                 db.session.add(new_history_entry)
 
         # Edycja wartości odczytu
@@ -862,8 +888,8 @@ def edit_meter(meter_id):
                 reading.reading = float(new_reading_value)
                 # Dodaj wpis do historii edycji
                 new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id,
-                                                     edit_type='Edit Reading',
-                                                     edit_details=f'Changed reading of {reading.date} from {old_reading_value} to {new_reading_value}')
+                                                     edit_type='Zmiana wartości',
+                                                     edit_details=f'Zmiana wartości odczytu z dnia {reading.date} z {old_reading_value} na {new_reading_value}')
                 db.session.add(new_history_entry)
 
         # Usuwanie duplikatów
@@ -874,8 +900,8 @@ def edit_meter(meter_id):
                     db.session.delete(reading)
                     # Dodaj wpis do historii edycji
                     new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id,
-                                                         edit_type='Delete Duplicate',
-                                                         edit_details=f'Deleted duplicate reading of {reading.date}')
+                                                         edit_type='Usunięto duplikat',
+                                                         edit_details=f'Usunięto duplikat odczytu z {reading.date}')
                     db.session.add(new_history_entry)
                 else:
                     unique_dates.add(reading.date)

@@ -17,7 +17,7 @@
         <tbody>
             {% for entry in history %}
             <tr>
-                <td>{{ entry.timestamp }}</td>
+                <td>{{ entry.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
                 <td>{{ entry.edit_type }}</td>
                 <td>{{ entry.edit_details }}</td>
             </tr>
