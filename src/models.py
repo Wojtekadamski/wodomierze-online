@@ -60,6 +60,7 @@ class User(UserMixin, db.Model):
     assigned_users = db.relationship('User', backref=db.backref('superuser', remote_side=[id]), lazy='dynamic')
     unread_messages = db.Column(db.Integer, default=0)
     report_months = db.relationship('UserReportMonth', backref='user', lazy='dynamic')
+    can_view_delta = db.Column(db.Boolean, default=False)
 
 
 
