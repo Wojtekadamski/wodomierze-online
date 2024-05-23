@@ -27,7 +27,7 @@
         <label>{{ edit_user_form.report_months.label }}</label><br>
         {% for value, label in edit_user_form.report_months.choices %}
             <div class="form-check form-check-inline">
-                <input class="form-check-input" type="checkbox" id="month-{{ value }}" name="report_months[]" value="{{ value }}" {{ 'checked' if value|string in edit_user_form.report_months.data else '' }}>
+                <input class="form-check-input" type="checkbox" id="month-{{ value }}" name="report_months[]" value="{{ value }}" {{ 'checked' if value in edit_user_form.report_months.data else '' }}>
                 <label class="form-check-label" for="month-{{ value }}">{{ label }}</label>
             </div>
         {% endfor %}

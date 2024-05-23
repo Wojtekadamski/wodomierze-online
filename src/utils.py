@@ -324,7 +324,7 @@ def process_csv_events(file_path, type):
 from datetime import datetime, timedelta
 
 
-def create_report_data(selected_meters, report_period):
+def create_report_data(selected_meters, user_months, report_period):
     end_date = datetime.now().replace(day=1) - relativedelta(days=1)
     start_date = end_date - relativedelta(months=report_period)
 
@@ -365,19 +365,26 @@ def create_report_data(selected_meters, report_period):
             for month in range(report_period):
                 month_date = end_date - relativedelta(months=month)
                 month_name = month_date.strftime('%B %Y')
-                meter_data[month_name] = ''
 
-                # Znajdź odczyt dla danego miesiąca
-                reading = MeterReading.query.filter(
-                    MeterReading.meter_id == meter.id,
-                    MeterReading.date >= month_date - relativedelta(months=1),
-                    MeterReading.date < month_date
-                ).order_by(MeterReading.date.desc()).first()  # Pobierz najnowszy odczyt w miesiącu
+                if meter.user and month_date.month in user_months.get(meter.user.id, []):
+                    meter_data[month_name] = ''  # Tylko jeśli użytkownik ma dostęp
 
-                if reading:
-                    meter_data[month_name] = reading.reading
+                    # Znajdź odczyt dla danego miesiąca
+                    reading = MeterReading.query.filter(
+                        MeterReading.meter_id == meter.id,
+                        MeterReading.date >= month_date - relativedelta(months=1),
+                        MeterReading.date < month_date
+                    ).order_by(MeterReading.date.desc()).first()  # Pobierz najnowszy odczyt w miesiącu
+
+                    if reading:
+                        meter_data[month_name] = reading.reading
+                    else:
+                        meter_data[month_name] = ' '
+                else:
+                    meter_data[month_name] = ' '  # Jeśli użytkownik nie ma dostępu
 
             report_data.append(meter_data)
+            print(report_period)
 
     return report_data
 
