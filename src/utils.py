@@ -335,13 +335,13 @@ def create_report_data(selected_meters, user_months, report_period):
             # Tworzenie reprezentacji adresu jako ciągu znaków
             if meter.address:
                 address_parts = [
-                    meter.address.street,
                     meter.address.building_number,
                     meter.address.apartment_number
                 ]
-                address_str = ', '.join(filter(None, address_parts))
+                address_building = '/ '.join(filter(None, address_parts))
+                address_str = meter.address.street +" "+address_building
             else:
-                address_str = 'N/A'
+                address_str = ' '
 
             if meter.type == 'water':
                 meter_type = 'wodomierz'
@@ -372,8 +372,8 @@ def create_report_data(selected_meters, user_months, report_period):
                     # Znajdź odczyt dla danego miesiąca
                     reading = MeterReading.query.filter(
                         MeterReading.meter_id == meter.id,
-                        MeterReading.date >= month_date - relativedelta(months=1),
-                        MeterReading.date < month_date
+                        MeterReading.date >= month_date.replace(day=1),
+                        MeterReading.date < (month_date + relativedelta(months=1)).replace(day=1)
                     ).order_by(MeterReading.date.desc()).first()  # Pobierz najnowszy odczyt w miesiącu
 
                     if reading:
@@ -384,7 +384,6 @@ def create_report_data(selected_meters, user_months, report_period):
                     meter_data[month_name] = ' '  # Jeśli użytkownik nie ma dostępu
 
             report_data.append(meter_data)
-            print(report_period)
 
     return report_data
 

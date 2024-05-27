@@ -127,6 +127,15 @@ def meter_details(meter_id):
 
     readings = MeterReading.query.filter_by(meter_id=meter.id).all()
     readings_list = [{"date": reading.date, "reading": reading.reading} for reading in readings]
+    if user:
+        user_months = {user.id: [month.month for month in user.report_months]}
+    if current_user.is_superuser:
+        for assigned_user in current_user.assigned_users:
+            user_months[assigned_user.id] = [month.month for month in assigned_user.report_months]
+
+    if not current_user.is_admin:
+        user_accessible_months = user_months.get(meter.user.id, [])
+        readings_list = [reading for reading in readings_list if reading['date'].month in user_accessible_months]
     return render_template('meter_details.html', meter=meter, readings=readings_list, user=user, events=events)
 
 
