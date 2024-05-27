@@ -1,3 +1,4 @@
+import calendar
 import random
 from datetime import datetime, timedelta
 
@@ -7,8 +8,9 @@ from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.utils import secure_filename
 from src.config import UPLOAD_FOLDER, EMAIL_KEY
 from src.forms import LoginForm, MeterForm, UploadForm, UserForm, EditAccountForm, \
-    UserNotesForm, UserOverviewForm, MessageForm, AssignMeterToSuperuserForm, AssignMeterToUserForm, EditUserForm
-from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address, MeterEditHistory
+    UserNotesForm, UserOverviewForm, MessageForm, AssignMeterToSuperuserForm, AssignMeterToUserForm, EditUserForm, \
+    MONTHS_PL
+from src.models import User, db, Meter, MeterReading, get_all_users, Message, Address, MeterEditHistory, UserReportMonth
 import os
 from src.utils import process_csv_water, process_csv_heat, admin_required, is_valid_link, process_csv_events, \
     superuser_required, create_report_data, generate_random_password, remove_duplicate_readings
@@ -69,7 +71,6 @@ def logout():
     return redirect(url_for('main_routes.home'))
 
 
-
 @admin_routes.route('/upload_csv', methods=['GET', 'POST'])
 @admin_required
 def upload_csv():
@@ -126,6 +127,15 @@ def meter_details(meter_id):
 
     readings = MeterReading.query.filter_by(meter_id=meter.id).all()
     readings_list = [{"date": reading.date, "reading": reading.reading} for reading in readings]
+    if user:
+        user_months = {user.id: [month.month for month in user.report_months]}
+    if current_user.is_superuser:
+        for assigned_user in current_user.assigned_users:
+            user_months[assigned_user.id] = [month.month for month in assigned_user.report_months]
+
+    if not current_user.is_admin:
+        user_accessible_months = user_months.get(meter.user.id, [])
+        readings_list = [reading for reading in readings_list if reading['date'].month in user_accessible_months]
     return render_template('meter_details.html', meter=meter, readings=readings_list, user=user, events=events)
 
 
@@ -178,7 +188,6 @@ def update_meter_address(meter_id):
         postal_code = request.form.get('postal_code')
         edit_details = ""
 
-
         if meter.address:
             address = meter.address
             # Sprawdź, które pola zostały zmienione i zapisz szczegóły
@@ -208,7 +217,7 @@ def update_meter_address(meter_id):
         # Dodaj wpis do historii edycji
         if edit_details:
             new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id,
-                                                     edit_type='Change Address', edit_details=edit_details)
+                                                 edit_type='Change Address', edit_details=edit_details)
             db.session.add(new_history_entry)
 
         db.session.commit()
@@ -278,7 +287,8 @@ def user_overview(user_id):
     assigned_meters = []
     if is_superuser:
         assigned_users = User.query.filter(User.superuser_id == user_id).all()
-        unassigned_users = User.query.filter(User.superuser_id==None, User.is_admin==False, User.is_superuser ==False).all()
+        unassigned_users = User.query.filter(User.superuser_id == None, User.is_admin == False,
+                                             User.is_superuser == False).all()
         assigned_meters = Meter.query.filter_by(superuser_id=user_id).all()
 
     user_form = UserForm()
@@ -288,26 +298,38 @@ def user_overview(user_id):
     meters = Meter.query.all()
 
     edit_user_form = EditUserForm(email=user.email)
+    edit_user_form.report_months.choices = [(str(i), MONTHS_PL[i]) for i in range(1, 13)]
+    selected_months = [str(rm.month) for rm in user.report_months.all()]
+    edit_user_form.report_months.data = selected_months
 
-    if edit_user_form.validate_on_submit():
-        user.email = edit_user_form.email.data
-        if edit_user_form.password.data:  # Sprawdź, czy hasło zostało podane
-            user.set_password(edit_user_form.password.data)
-        db.session.commit()
-        flash('Dane użytkownika zostały zaktualizowane.', 'success')
-        return redirect(url_for('main_routes.user_overview', user_id=user.id))
+    if request.method == 'POST':
+        print(request.form)
+        if edit_user_form.validate_on_submit():
+            user.email = edit_user_form.email.data
+            if edit_user_form.password.data:  # Sprawdź, czy hasło zostało podane
+                user.set_password(edit_user_form.password.data)
 
-    if 'meter_id' in request.form and request.form['meter_id']:
-        meter_id = int(request.form.get('meter_id'))
-        meter = Meter.query.get(meter_id)
-        meter.user = user
-        db.session.commit()
-        flash('Licznik został pomyślnie przypisany do użytkownika.')
+            UserReportMonth.query.filter_by(user_id=user.id).delete()
+            for month in request.form.getlist('report_months[]'):
+                new_month = UserReportMonth(user_id=user.id, month=int(month))
+                print(new_month)
+                db.session.add(new_month)
 
-    if user_notes_form.validate_on_submit():
-        user.notes = user_notes_form.notes.data
-        db.session.commit()
-        flash('Notatki zostały zaktualizowane.')
+            db.session.commit()
+            flash('Dane użytkownika zostały zaktualizowane.', 'success')
+            return redirect(url_for('main_routes.user_overview', user_id=user.id))
+
+        if 'meter_id' in request.form and request.form['meter_id']:
+            meter_id = int(request.form.get('meter_id'))
+            meter = Meter.query.get(meter_id)
+            meter.user = user
+            db.session.commit()
+            flash('Licznik został pomyślnie przypisany do użytkownika.')
+
+        if user_notes_form.validate_on_submit():
+            user.notes = user_notes_form.notes.data
+            db.session.commit()
+            flash('Notatki zostały zaktualizowane.')
 
     return render_template(
         'user_overview.html',
@@ -495,7 +517,8 @@ def messages():
         for recipient_id in recipient_ids:
             recipient = User.query.get(int(recipient_id))
             if recipient:
-                message = Message(sender_id=current_user.id, recipient_id=recipient.id, subject=subject, content=content)
+                message = Message(sender_id=current_user.id, recipient_id=recipient.id, subject=subject,
+                                  content=content)
                 db.session.add(message)
                 recipient.unread_messages += 1
             else:
@@ -506,7 +529,6 @@ def messages():
         return redirect(url_for('main_routes.messages'))
 
     return render_template('messages.html', form=form)
-
 
 
 @main_routes.route('/message/<int:message_id>')
@@ -695,7 +717,6 @@ def assign_user_to_superuser(superuser_id, user_id):
     for meter in user_to_assign.meters:
         meter.superuser_id = superuser_id
 
-
     db.session.commit()
     flash('Użytkownik został przypisany do superusera.', 'success')
 
@@ -722,6 +743,7 @@ def remove_assigned_user(user_id):
 
     return redirect(url_for('main_routes.user_overview', user_id=current_user.id))
 
+
 @main_routes.route('/generate_report', methods=['GET', 'POST'])
 @superuser_required
 def generate_report():
@@ -729,8 +751,15 @@ def generate_report():
         selected_meters = request.form.getlist('selected_meters')
         report_period = int(request.form.get('report_period'))
 
+        if current_user.is_admin:
+            users = User.query.all()
+            # Administrator ma dostęp do wszystkich miesięcy
+            user_months = {user.id: list(range(1, 13)) for user in users}
+        else:
+            users = User.query.filter_by(superuser_id=current_user.id).all()
+            user_months = {user.id: [ur.month for ur in user.report_months] for user in users}
 
-        report_data = create_report_data(selected_meters, report_period)
+        report_data = create_report_data(selected_meters, user_months, report_period)
         session['report_data'] = report_data  # Zapisz dane do sesji
         session['report_period'] = report_period
         return redirect(url_for('main_routes.display_report'))
@@ -740,7 +769,6 @@ def generate_report():
     else:
         users = User.query.filter_by(superuser_id=current_user.id).all()
     return render_template('generate_report.html', users=users)
-
 
 
 @main_routes.route('/display_report')
@@ -781,11 +809,11 @@ def display_report():
     translated_month_names = [english_to_polish_months.get(month.split()[0], month.split()[0]) + ' ' + month.split()[1]
                               for month in translated_month_names]
 
-
-    return render_template('display_report.html', report_data=report_data,translated_month_names=translated_month_names, report_period=report_period,
-                           end_date=end_date, relativedelta=relativedelta,report_start_date=report_start_date.strftime('%Y-%m-%d'), report_end_date=report_end_date.strftime('%Y-%m-%d'), unique_emails=unique_emails)
-
-
+    return render_template('display_report.html', report_data=report_data,
+                           translated_month_names=translated_month_names, report_period=report_period,
+                           end_date=end_date, relativedelta=relativedelta,
+                           report_start_date=report_start_date.strftime('%Y-%m-%d'),
+                           report_end_date=report_end_date.strftime('%Y-%m-%d'), unique_emails=unique_emails)
 
 
 @main_routes.route('/add_multiple_users', methods=['POST'])
@@ -808,10 +836,8 @@ def add_multiple_users():
 
 
 
-
-
-@admin_routes.route('/admin/edit_meter/<int:meter_id>', methods=['GET', 'POST'])
-@admin_required
+@main_routes.route('/edit_meter/<int:meter_id>', methods=['GET', 'POST'])
+@login_required
 def edit_meter(meter_id):
     if not current_user.is_admin:
         flash('Brak uprawnień do edycji licznika.', 'danger')
@@ -830,7 +856,9 @@ def edit_meter(meter_id):
             old_radio_number = meter.radio_number
             meter.radio_number = new_radio_number
             # Dodaj wpis do historii edycji
-            new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id, edit_type='Change Radio Number', edit_details=f'Changed from {old_radio_number} to {new_radio_number}')
+            new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id,
+                                                 edit_type='Change Radio Number',
+                                                 edit_details=f'Changed from {old_radio_number} to {new_radio_number}')
             db.session.add(new_history_entry)
 
         # Usuwanie wybranych odczytów
@@ -839,7 +867,9 @@ def edit_meter(meter_id):
             if reading:
                 db.session.delete(reading)
                 # Dodaj wpis do historii edycji
-                new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id, edit_type='Delete Reading', edit_details=f'Deleted reading of {reading.date}')
+                new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id,
+                                                     edit_type='Delete Reading',
+                                                     edit_details=f'Deleted reading of {reading.date}')
                 db.session.add(new_history_entry)
 
         # Edycja wartości odczytu
@@ -849,7 +879,9 @@ def edit_meter(meter_id):
                 old_reading_value = reading.reading
                 reading.reading = float(new_reading_value)
                 # Dodaj wpis do historii edycji
-                new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id, edit_type='Edit Reading', edit_details=f'Changed reading of {reading.date} from {old_reading_value} to {new_reading_value}')
+                new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id,
+                                                     edit_type='Edit Reading',
+                                                     edit_details=f'Changed reading of {reading.date} from {old_reading_value} to {new_reading_value}')
                 db.session.add(new_history_entry)
 
         # Usuwanie duplikatów
@@ -859,7 +891,9 @@ def edit_meter(meter_id):
                 if reading.date in unique_dates:
                     db.session.delete(reading)
                     # Dodaj wpis do historii edycji
-                    new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id, edit_type='Delete Duplicate', edit_details=f'Deleted duplicate reading of {reading.date}')
+                    new_history_entry = MeterEditHistory(meter_id=meter_id, user_id=current_user.id,
+                                                         edit_type='Delete Duplicate',
+                                                         edit_details=f'Deleted duplicate reading of {reading.date}')
                     db.session.add(new_history_entry)
                 else:
                     unique_dates.add(reading.date)
@@ -871,12 +905,12 @@ def edit_meter(meter_id):
     return render_template('edit_meter.html', meter=meter, readings=readings)
 
 
-
 @main_routes.route('/meter_history/<int:meter_id>')
 @login_required
 def meter_history(meter_id):
     meter = Meter.query.get_or_404(meter_id)
-    if not (current_user.is_admin or current_user.id == meter.user_id or (current_user.is_superuser and current_user.id == meter.superuser_id)):
+    if not (current_user.is_admin or current_user.id == meter.user_id or (
+            current_user.is_superuser and current_user.id == meter.superuser_id)):
         flash('Brak uprawnień do wyświetlenia historii tego licznika.', 'danger')
         return redirect(url_for('main_routes.home'))
 
@@ -891,7 +925,8 @@ def delete_selected_meters():
 
     if not selected_ids:
         flash('Nie zaznaczono żadnych liczników do usunięcia.', 'warning')
-        return redirect(url_for('admin_routes.admin_panel'))  # Zakładając, że 'admin_panel' to nazwa funkcji widoku panelu admina
+        return redirect(
+            url_for('admin_routes.admin_panel'))  # Zakładając, że 'admin_panel' to nazwa funkcji widoku panelu admina
 
     try:
         # Usuń powiązane rekordy z meter_edit_history

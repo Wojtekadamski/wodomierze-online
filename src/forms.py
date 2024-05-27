@@ -1,7 +1,9 @@
+import calendar
+
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileRequired, FileAllowed
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, IntegerField, DateField, \
-    FloatField, FileField, TextAreaField
+    FloatField, FileField, TextAreaField, SelectMultipleField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
 from src.config import ALLOWED_EXTENSIONS
 from src.models import User, Meter
@@ -100,8 +102,17 @@ class AssignMeterToUserForm(FlaskForm):
         self.meter_id.choices = [(m.id, m.radio_number) for m in
                                  Meter.query.filter_by(owned_by_superuser=superuser_id).all()]
 
+
+MONTHS_PL = {
+    1: 'Styczeń', 2: 'Luty', 3: 'Marzec',
+    4: 'Kwiecień', 5: 'Maj', 6: 'Czerwiec',
+    7: 'Lipiec', 8: 'Sierpień', 9: 'Wrzesień',
+    10: 'Październik', 11: 'Listopad', 12: 'Grudzień'
+}
 class EditUserForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Nowe hasło')  # Usunięto DataRequired
     confirm_password = PasswordField('Potwierdź hasło', validators=[EqualTo('password')])  # Usunięto DataRequired
+    report_months = SelectMultipleField('Miesiące raportowania', choices=[(str(i), MONTHS_PL[i]) for i in range(1, 13)],
+                                        coerce=int)
     submit = SubmitField('Zaktualizuj')

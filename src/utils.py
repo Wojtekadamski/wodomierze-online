@@ -7,7 +7,7 @@ import chardet as chardet
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import extract, func
 from sqlalchemy.exc import NoResultFound
-from src.models import db, Meter, MeterReading, UserValidationLink, Event, Address
+from src.models import db, Meter, MeterReading, UserValidationLink, Event, Address, UserReportMonth
 from functools import wraps
 from flask import flash, redirect, url_for
 from flask_login import current_user
@@ -324,7 +324,7 @@ def process_csv_events(file_path, type):
 from datetime import datetime, timedelta
 
 
-def create_report_data(selected_meters, report_period):
+def create_report_data(selected_meters, user_months, report_period):
     end_date = datetime.now().replace(day=1) - relativedelta(days=1)
     start_date = end_date - relativedelta(months=report_period)
 
@@ -335,13 +335,13 @@ def create_report_data(selected_meters, report_period):
             # Tworzenie reprezentacji adresu jako ciągu znaków
             if meter.address:
                 address_parts = [
-                    meter.address.street,
                     meter.address.building_number,
                     meter.address.apartment_number
                 ]
-                address_str = ', '.join(filter(None, address_parts))
+                address_building = '/ '.join(filter(None, address_parts))
+                address_str = meter.address.street +" "+address_building
             else:
-                address_str = 'N/A'
+                address_str = ' '
 
             if meter.type == 'water':
                 meter_type = 'wodomierz'
@@ -365,17 +365,23 @@ def create_report_data(selected_meters, report_period):
             for month in range(report_period):
                 month_date = end_date - relativedelta(months=month)
                 month_name = month_date.strftime('%B %Y')
-                meter_data[month_name] = ''
 
-                # Znajdź odczyt dla danego miesiąca
-                reading = MeterReading.query.filter(
-                    MeterReading.meter_id == meter.id,
-                    MeterReading.date >= month_date - relativedelta(months=1),
-                    MeterReading.date < month_date
-                ).order_by(MeterReading.date.desc()).first()  # Pobierz najnowszy odczyt w miesiącu
+                if meter.user and month_date.month in user_months.get(meter.user.id, []):
+                    meter_data[month_name] = ''  # Tylko jeśli użytkownik ma dostęp
 
-                if reading:
-                    meter_data[month_name] = reading.reading
+                    # Znajdź odczyt dla danego miesiąca
+                    reading = MeterReading.query.filter(
+                        MeterReading.meter_id == meter.id,
+                        MeterReading.date >= month_date.replace(day=1),
+                        MeterReading.date < (month_date + relativedelta(months=1)).replace(day=1)
+                    ).order_by(MeterReading.date.desc()).first()  # Pobierz najnowszy odczyt w miesiącu
+
+                    if reading:
+                        meter_data[month_name] = reading.reading
+                    else:
+                        meter_data[month_name] = ' '
+                else:
+                    meter_data[month_name] = ' '  # Jeśli użytkownik nie ma dostępu
 
             report_data.append(meter_data)
 
@@ -418,6 +424,18 @@ def remove_duplicate_readings():
 
     db.session.commit()
     return total_removed_duplicates
+
+
+def update_user_report_months(user_id, selected_months):
+    # Usunięcie istniejących rekordów
+    UserReportMonth.query.filter_by(user_id=user_id).delete()
+
+    # Dodanie nowych rekordów dla zaznaczonych miesięcy
+    for month in selected_months:
+        new_month = UserReportMonth(user_id=user_id, month=month)
+        db.session.add(new_month)
+
+    db.session.commit()
 
 
 # def fetch_data_from_db(start_date, end_date):
